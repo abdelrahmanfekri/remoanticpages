@@ -65,6 +65,21 @@ export default function BirthdayWebsite() {
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
 
+  // Try to start the music softly on first load
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.volume = 0.25; // calm volume
+    const playAudio = async () => {
+      try {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch {
+        // Browser blocked autoplay; user will press the button
+      }
+    };
+    playAudio();
+  }, []);
+
   useEffect(() => {
     if (media.length > 0) {
       const interval = setInterval(() => {
