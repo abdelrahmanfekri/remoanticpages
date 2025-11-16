@@ -29,9 +29,10 @@ yarn-error.log*
 .vscode
 
 # uploads/media (if used, adjust if you store media outside /public)
-/uploads
-/public/uploads
-/public/music/*.mp3
+# /uploads
+# /public/uploads
+# Allow music files in /public/music so they are deployed with the site
+# /public/music/*.mp3
 
 # next/image cache
 /public/_next
