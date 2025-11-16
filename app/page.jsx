@@ -66,6 +66,7 @@ export default function BirthdayWebsite() {
   const [passwordInput, setPasswordInput] = useState("");
   const [authError, setAuthError] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [audioNeedsInteraction, setAudioNeedsInteraction] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -83,13 +84,14 @@ export default function BirthdayWebsite() {
   // Try to start the music softly on first load (only after auth)
   useEffect(() => {
     if (!isAuthorized || !audioRef.current) return;
-    audioRef.current.volume = 0.25; // calm volume
     const playAudio = async () => {
       try {
         await audioRef.current.play();
         setIsPlaying(true);
+        setAudioNeedsInteraction(false);
       } catch {
-        // Browser blocked autoplay; user will press the button
+        // Browser blocked autoplay; show a gentle hint to tap the button
+        setAudioNeedsInteraction(true);
       }
     };
     playAudio();
@@ -127,6 +129,7 @@ export default function BirthdayWebsite() {
       audioRef.current.play();
     }
     setIsPlaying(!isPlaying);
+    setAudioNeedsInteraction(false);
   };
 
   const currentHeroItem =
@@ -234,18 +237,25 @@ export default function BirthdayWebsite() {
       </audio>
 
       {/* Music Toggle Button */}
-      <button
-        onClick={toggleMusic}
-        className="fixed top-6 right-6 z-50 bg-white/90 backdrop-blur-md p-3 rounded-full soft-glow hover:scale-110 transition-all duration-300 flex items-center gap-2"
-      >
-        <Music
-          className={isPlaying ? "text-rose-500" : "text-gray-400"}
-          size={22}
-        />
-        <span className="hidden md:inline text-sm font-medium text-gray-700">
-          {isPlaying ? "Pause our song" : "Play our song"}
-        </span>
-      </button>
+      <div className="fixed top-6 right-6 z-50 flex flex-col items-end gap-2">
+        <button
+          onClick={toggleMusic}
+          className="bg-white/90 backdrop-blur-md p-3 rounded-full soft-glow hover:scale-110 transition-all duration-300 flex items-center gap-2"
+        >
+          <Music
+            className={isPlaying ? "text-rose-500" : "text-gray-400"}
+            size={22}
+          />
+          <span className="hidden md:inline text-sm font-medium text-gray-700">
+            {isPlaying ? "Pause our song" : "Play our song"}
+          </span>
+        </button>
+        {audioNeedsInteraction && (
+          <div className="mt-1 px-3 py-2 rounded-full bg-rose-500/90 text-white text-xs shadow-lg animate-fade-up">
+            Tap the heart music button to let the song play 🎶
+          </div>
+        )}
+      </div>
 
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 py-20 relative">
