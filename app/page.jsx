@@ -74,7 +74,8 @@ export default function BirthdayWebsite() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const stored = window.localStorage.getItem("birthday_auth");
-    if (stored === "true") {
+    const storedPassword = window.localStorage.getItem("birthday_password");
+    if (stored === "true" && storedPassword === PASSWORD) {
       setIsAuthorized(true);
     }
   }, []);
@@ -146,6 +147,7 @@ export default function BirthdayWebsite() {
       setAuthError("");
       if (typeof window !== "undefined") {
         window.localStorage.setItem("birthday_auth", "true");
+        window.localStorage.setItem("birthday_password", PASSWORD);
       }
     } else {
       setAuthError("Wrong word, habibti. Try again ♥");
