@@ -58,7 +58,7 @@ const initialMediaPaths = [
 ];
 
 // Simple hard-coded password for the whole page
-const PASSWORD = "saroura-birthday-gift-by-abdelrahman-secret-dont-hack-me-please";
+const PASSWORD = "saroura-abdelrahman-10-09-2025";
 
 export default function BirthdayWebsite() {
   const [media, setMedia] = useState(initialMediaPaths);
