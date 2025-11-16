@@ -39,7 +39,6 @@ const memories = [
 // You can set some default media (images / videos) here (you will place files in /public/images)
 const initialMediaPaths = [
   "/images/WhatsApp Image 2025-11-16 at 19.56.49.jpeg",
-  "/images/WhatsApp Image 2025-11-16 at 19.56.52 (1).jpeg",
   "/images/WhatsApp Image 2025-11-16 at 19.56.52 (2).jpeg",
   "/images/WhatsApp Image 2025-11-16 at 19.56.52 (3).jpeg",
   "/images/WhatsApp Image 2025-11-16 at 19.56.52 (4).jpeg",
@@ -58,16 +57,31 @@ const initialMediaPaths = [
   "/images/WhatsApp Video 2025-11-16 at 19.56.52.mp4"
 ];
 
+// Simple hard-coded password for the whole page
+const PASSWORD = "saroura-birthday-gift-by-abdelrahman-secret-dont-hack-me";
+
 export default function BirthdayWebsite() {
   const [media, setMedia] = useState(initialMediaPaths);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [authError, setAuthError] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const audioRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Try to start the music softly on first load
+  // Restore auth from previous visit
   useEffect(() => {
-    if (!audioRef.current) return;
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem("birthday_auth");
+    if (stored === "true") {
+      setIsAuthorized(true);
+    }
+  }, []);
+
+  // Try to start the music softly on first load (only after auth)
+  useEffect(() => {
+    if (!isAuthorized || !audioRef.current) return;
     audioRef.current.volume = 0.25; // calm volume
     const playAudio = async () => {
       try {
@@ -78,7 +92,7 @@ export default function BirthdayWebsite() {
       }
     };
     playAudio();
-  }, []);
+  }, [isAuthorized]);
 
   useEffect(() => {
     if (media.length > 0) {
@@ -122,6 +136,76 @@ export default function BirthdayWebsite() {
     (src.toLowerCase().endsWith(".mp4") ||
       src.toLowerCase().endsWith(".webm") ||
       src.toLowerCase().startsWith("data:video"));
+
+  const handlePasswordSubmit = e => {
+    e.preventDefault();
+    const normalized = passwordInput.trim().toLowerCase();
+    const expected = PASSWORD.toLowerCase();
+    if (normalized && expected.includes(normalized)) {
+      setIsAuthorized(true);
+      setAuthError("");
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("birthday_auth", "true");
+      }
+    } else {
+      setAuthError("Wrong word, habibti. Try again ♥");
+    }
+  };
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50 relative overflow-hidden">
+        <div className="pointer-events-none fixed inset-0 opacity-30">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <Heart
+              key={i}
+              className="floating-heart absolute text-rose-300"
+              style={{
+                left: `${8 + (i * 9) % 80}%`,
+                bottom: `${-30 - i * 10}px`,
+                animationDelay: `${i * 0.7}s`
+              }}
+            />
+          ))}
+        </div>
+        <div className="relative z-10 glass-card soft-glow max-w-md w-full mx-4 p-8 space-y-6 animate-soft-rise">
+          <p className="text-center text-sm uppercase tracking-[0.25em] text-rose-400 font-semibold">
+            Private – for Sarora only
+          </p>
+          <h1 className="text-3xl md:text-4xl font-serif text-rose-500 text-center">
+            Just for you, سرورتي
+          </h1>
+          <p className="text-gray-700 text-center text-sm md:text-base font-arabic">
+            دي صفحة معمولة مخصوص ليكي. لو إنتِ سرورتي العسلية، اكتبّي الكلمة
+            السحرية اللي بينا علشان ندخل على المفاجأة.
+          </p>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={e => setPasswordInput(e.target.value)}
+              placeholder="Our secret word"
+              className="w-full rounded-full border border-rose-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent bg-white/80 text-center"
+            />
+            {authError && (
+              <p className="text-sm text-center text-rose-500 font-english">
+                {authError}
+              </p>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-rose-500 to-pink-500 text-white py-3 rounded-full soft-glow hover:scale-105 transition-transform duration-200 font-medium"
+            >
+              Open my gift
+            </button>
+          </form>
+          <p className="text-xs text-center text-gray-400 font-english">
+            P.S. Abdelrahman can help you if you forget our little secret.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 relative overflow-hidden">
