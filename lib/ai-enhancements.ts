@@ -45,6 +45,7 @@ export const AI_ENHANCEMENTS: AIEnhancementOption[] = [
     icon: Languages,
     description: 'Translate to multiple languages',
     color: 'green',
+    premium: true,
   },
   {
     id: 'make-romantic',
@@ -52,6 +53,7 @@ export const AI_ENHANCEMENTS: AIEnhancementOption[] = [
     icon: MessageSquare,
     description: 'Add romantic flair',
     color: 'pink',
+    premium: true,
   },
   {
     id: 'make-formal',
@@ -59,6 +61,7 @@ export const AI_ENHANCEMENTS: AIEnhancementOption[] = [
     icon: MessageSquare,
     description: 'Professional tone',
     color: 'gray',
+    premium: true,
   },
   {
     id: 'make-casual',
@@ -66,6 +69,7 @@ export const AI_ENHANCEMENTS: AIEnhancementOption[] = [
     icon: MessageSquare,
     description: 'Friendly and relaxed',
     color: 'orange',
+    premium: true,
   },
   {
     id: 'shorten',
@@ -94,6 +98,7 @@ export const AI_ENHANCEMENTS: AIEnhancementOption[] = [
     icon: Sparkles,
     description: 'Make it fun with emojis',
     color: 'yellow',
+    premium: true,
   },
 ]
 
