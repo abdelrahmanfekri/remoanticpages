@@ -84,6 +84,7 @@ export interface Database {
         Row: {
           id: string
           page_id: string
+          order: number
           title: string
           description: string
           date: string
@@ -94,6 +95,7 @@ export interface Database {
         Insert: {
           id?: string
           page_id: string
+          order: number
           title: string
           description: string
           date: string
@@ -104,6 +106,7 @@ export interface Database {
         Update: {
           id?: string
           page_id?: string
+          order?: number
           title?: string
           description?: string
           date?: string
