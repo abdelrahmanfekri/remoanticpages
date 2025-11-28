@@ -30,6 +30,7 @@ export interface Database {
           has_custom_animations: boolean
           view_count: number
           share_count: number
+          config: Json | null
           created_at: string
           updated_at: string
         }
@@ -53,6 +54,7 @@ export interface Database {
           has_custom_animations?: boolean
           view_count?: number
           share_count?: number
+          config?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -76,6 +78,7 @@ export interface Database {
           has_custom_animations?: boolean
           view_count?: number
           share_count?: number
+          config?: Json | null
           created_at?: string
           updated_at?: string
         }

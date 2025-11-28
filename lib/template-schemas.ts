@@ -980,3 +980,92 @@ export function getComponent(
   return schema.components.find((c) => c.id === componentId) || null
 }
 
+/**
+ * Convert template schema to TemplateConfig format for page storage
+ */
+export function schemaToConfig(schema: TemplateSchema): {
+  components: Array<{
+    id: string
+    type: ComponentType
+    variant?: string
+    order: number
+    theme?: Record<string, any>
+    settings?: Record<string, any>
+  }>
+  theme: {
+    primaryColor?: string
+    secondaryColor?: string
+    backgroundGradient?: string
+    fontFamily?: string
+  }
+  background?: {
+    type?: 'gradient' | 'solid' | 'pattern'
+    value?: string
+  }
+} {
+  return {
+    components: schema.components.map((comp) => ({
+      id: comp.id,
+      type: comp.type,
+      order: comp.order,
+      settings: comp.settings,
+    })),
+    theme: {
+      primaryColor: schema.theme.primaryColor,
+      secondaryColor: schema.theme.secondaryColor,
+      fontFamily: schema.theme.fontFamily,
+    },
+    background: {
+      type: 'gradient',
+      value: `from-[${schema.theme.primaryColor}]20 via-white to-[${schema.theme.secondaryColor}]20`,
+    },
+  }
+}
+
+/**
+ * Get default config for custom pages
+ */
+export function getDefaultConfig() {
+  return {
+    components: [
+      {
+        id: 'hero',
+        type: 'hero' as ComponentType,
+        order: 0,
+        settings: {
+          showSubtitle: true,
+          showImage: true,
+          showDecorativeElements: true,
+        },
+      },
+      {
+        id: 'intro',
+        type: 'intro' as ComponentType,
+        order: 1,
+        settings: {
+          style: 'card',
+          centered: true,
+        },
+      },
+      {
+        id: 'final',
+        type: 'final-message' as ComponentType,
+        order: 2,
+        settings: {
+          style: 'centered',
+          showSignature: true,
+        },
+      },
+    ],
+    theme: {
+      primaryColor: '#f43f5e',
+      secondaryColor: '#ec4899',
+      fontFamily: 'serif',
+    },
+    background: {
+      type: 'gradient' as const,
+      value: 'from-pink-50 via-white to-rose-50',
+    },
+  }
+}
+
