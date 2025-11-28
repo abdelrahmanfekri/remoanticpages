@@ -56,6 +56,16 @@ export const SUPPORTED_LANGUAGES = [
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]['code']
 
+/**
+ * Get language name from language code
+ * @param code - Language code (e.g., 'en', 'ar', 'es')
+ * @returns Language name (e.g., 'English', 'Arabic', 'Spanish')
+ */
+export function getLanguageName(code: string): string {
+  const language = SUPPORTED_LANGUAGES.find((lang) => lang.code === code)
+  return language?.name || code
+}
+
 export async function translateText(
   text: string,
   targetLanguage: LanguageCode,
