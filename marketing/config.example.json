@@ -1,0 +1,91 @@
+{
+  "anthropic_api_key": "YOUR_ANTHROPIC_API_KEY",
+  "openai_api_key": "YOUR_OPENAI_API_KEY",
+  "buffer_api_key": "YOUR_BUFFER_API_KEY",
+  "pinterest_api": {
+    "access_token": "YOUR_PINTEREST_TOKEN",
+    "board_id": "YOUR_BOARD_ID"
+  },
+  "serp_api_key": "YOUR_SERPAPI_KEY",
+  "business_info": {
+    "name": "Romantic Pages",
+    "niche": "romantic digital pages, anniversary gifts, love messages",
+    "website": "https://yourwebsite.com",
+    "target_audience": "young couples, romantics, people celebrating anniversaries/birthdays",
+    "brand_colors": ["#FF1493", "#FF69B4", "#FFB6C1"],
+    "tone": "romantic, emotional, inspiring"
+  },
+  "social_media": {
+    "pinterest": {
+      "enabled": true,
+      "boards": ["Romantic Ideas", "Anniversary Inspiration", "Love Messages"],
+      "daily_pins": 5,
+      "best_times": ["09:00", "13:00", "19:00", "21:00"]
+    },
+    "instagram": {
+      "enabled": true,
+      "handle": "@yourhandle",
+      "daily_posts": 2,
+      "stories_per_day": 3,
+      "best_times": ["10:00", "18:00"]
+    },
+    "facebook": {
+      "enabled": true,
+      "groups": [
+        {
+          "name": "Wedding Planning Community",
+          "url": "https://facebook.com/groups/example",
+          "posting_frequency": "daily",
+          "best_time": "18:00"
+        }
+      ]
+    },
+    "tiktok": {
+      "enabled": false,
+      "note": "Manual posting recommended for best results"
+    }
+  },
+  "seo": {
+    "target_keywords": [
+      "romantic birthday page",
+      "anniversary website maker",
+      "digital love letter",
+      "romantic gift ideas",
+      "personalized love page",
+      "online anniversary card"
+    ],
+    "competitor_sites": [
+      "https://competitor1.com",
+      "https://competitor2.com"
+    ],
+    "blog_posts_per_week": 3,
+    "focus_locations": ["United States", "United Kingdom", "Canada"]
+  },
+  "content_strategy": {
+    "daily_content_count": 10,
+    "content_types": {
+      "educational": 0.3,
+      "inspirational": 0.4,
+      "promotional": 0.2,
+      "user_generated": 0.1
+    },
+    "hashtag_count": 8,
+    "emoji_usage": "high",
+    "variation_count": 3
+  },
+  "automation_settings": {
+    "mode": "semi_automated",
+    "max_posts_per_day": 15,
+    "delay_between_posts": [180, 420],
+    "use_scheduling": true,
+    "auto_approve": false,
+    "backup_content": true
+  },
+  "output": {
+    "content_directory": "./generated_content",
+    "images_directory": "./generated_content/images",
+    "reports_directory": "./reports",
+    "schedules_directory": "./schedules"
+  }
+}
+

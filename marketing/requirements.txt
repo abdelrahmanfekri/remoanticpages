@@ -1,0 +1,46 @@
+# AI and Content Generation
+anthropic>=0.39.0
+openai>=1.54.0
+langchain>=0.3.0
+langchain-anthropic>=0.3.0
+
+# Social Media APIs
+requests>=2.32.0
+tweepy>=4.14.0
+instagrapi>=2.1.0
+pinterest-api>=0.4.0
+
+# SEO and Web Scraping
+beautifulsoup4>=4.12.0
+serpapi>=0.1.5
+playwright>=1.48.0
+pyppeteer>=2.0.0
+
+# Image and Media Processing
+Pillow>=10.4.0
+moviepy>=1.0.3
+opencv-python>=4.10.0
+
+# Data Processing
+pandas>=2.2.0
+openpyxl>=3.1.0
+numpy>=1.26.0
+
+# Scheduling and Automation
+schedule>=1.2.0
+celery>=5.4.0
+redis>=5.0.0
+apscheduler>=3.10.0
+
+# Utilities
+python-dotenv>=1.0.0
+pyperclip>=1.9.0
+colorama>=0.4.6
+tqdm>=4.66.0
+pyyaml>=6.0
+
+# Analytics
+google-analytics-data>=0.18.0
+matplotlib>=3.9.0
+seaborn>=0.13.0
+
