@@ -23,7 +23,7 @@ export function PasswordForm({ slug, recipientName }: { slug: string; recipientN
     const data = await res.json()
 
     if (data.valid) {
-      router.push(`/p/${slug}?password=${encodeURIComponent(password)}`)
+      window.location.href = `/p/${slug}`
     } else {
       setError(data.error || 'Incorrect password')
       setLoading(false)
