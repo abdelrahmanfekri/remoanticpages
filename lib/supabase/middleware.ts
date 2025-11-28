@@ -36,22 +36,16 @@ export async function updateSession(request: NextRequest) {
     },
   })
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it so that the
-  // middleware and server client get out of sync and cause runtime errors.
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect dashboard routes
   if (request.nextUrl.pathname.startsWith('/dashboard') && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Redirect authenticated users away from login/signup
   if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
