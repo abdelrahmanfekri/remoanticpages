@@ -1,16 +1,12 @@
 import "./globals.css";
+import { ReactNode } from "react";
 
 export const metadata = {
-  title: "Happy Birthday, Sarorah",
-  description: "A small website gift, made with love.",
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true
-  }
+  title: "Romantic Website",
+  description: "A romantic website for your special someone",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="min-h-screen bg-romantic-gradient text-gray-900 antialiased font-english">
@@ -19,5 +15,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-
 
