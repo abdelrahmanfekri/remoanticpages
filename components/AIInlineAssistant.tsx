@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Sparkles, Wand2, Languages, MessageSquare, Loader2, Check, X, AlertCircle, Maximize2, RotateCcw, Copy } from 'lucide-react'
+import { Sparkles, Wand2, MessageSquare, Loader2, X, AlertCircle, Maximize2, RotateCcw, Copy } from 'lucide-react'
 import { enhanceWithAI } from '@/lib/ai-enhancements'
 import { AIEnhancementPopup } from './AIEnhancementPopup'
 
@@ -23,16 +23,13 @@ export function AIInlineAssistant({
   occasion,
 }: AIInlineAssistantProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [suggestions, setSuggestions] = useState<Array<{ type: string; text: string }>>([])
-  const [selectedIndex, setSelectedIndex] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [showFullPopup, setShowFullPopup] = useState(false)
   const [activeAction, setActiveAction] = useState<string | null>(null)
   const [previewText, setPreviewText] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const suggestionsRef = useRef<HTMLDivElement>(null)
 
-  // Quick enhancement options - most common actions
+  // Quick enhancement options - most common actions, no default suggestion
   const quickActions = [
     { id: 'improve-text', label: 'Improve', icon: Wand2, color: 'from-purple-500 to-purple-600', description: 'Enhance clarity' },
     { id: 'make-romantic', label: 'Romantic', icon: MessageSquare, color: 'from-pink-500 to-rose-600', description: 'Add romance' },
@@ -40,99 +37,41 @@ export function AIInlineAssistant({
     { id: 'add-emoji', label: 'Add Emoji', icon: Sparkles, color: 'from-yellow-500 to-orange-600', description: 'Make fun' },
   ]
 
-  const suggestionLabels: Record<string, string> = {
-    improved: '✨ Improved',
-    romantic: '💕 Romantic',
-    emoji: '🎉 With Emojis',
-  }
-
-  // Auto-generate suggestions on mount (only if text exists)
-  useEffect(() => {
-    if (text && text.length > 3 && suggestions.length === 0 && !isLoading) {
-      generateSuggestions()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text])
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      } else if (e.key === 'ArrowDown' && suggestions.length > 0) {
-        e.preventDefault()
-        setSelectedIndex((prev) => Math.min(prev + 1, suggestions.length - 1))
-      } else if (e.key === 'ArrowUp' && suggestions.length > 0) {
-        e.preventDefault()
-        setSelectedIndex((prev) => Math.max(prev - 1, 0))
-      } else if (e.key === 'Enter' && suggestions[selectedIndex]) {
-        e.preventDefault()
-        applySuggestion(suggestions[selectedIndex].text)
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [suggestions, selectedIndex, onClose])
-
-  // Scroll selected suggestion into view
-  useEffect(() => {
-    if (suggestionsRef.current && suggestions.length > 0) {
-      const selectedElement = suggestionsRef.current.children[selectedIndex] as HTMLElement
-      if (selectedElement) {
-        selectedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-      }
-    }
-  }, [selectedIndex, suggestions])
-
-  const generateSuggestions = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // Generate 2 quick suggestions (reduced from 3 for faster loading)
-      const [improved, romantic] = await Promise.all([
-        enhanceWithAI(text, 'improve-text', { recipientName, occasion }).catch(() => null),
-        enhanceWithAI(text, 'make-romantic', { recipientName, occasion }).catch(() => null),
-      ])
-
-      const validSuggestions = [
-        improved && { type: 'improved', text: improved },
-        romantic && { type: 'romantic', text: romantic },
-      ].filter(Boolean) as Array<{ type: string; text: string }>
-
-      setSuggestions(validSuggestions)
-    } catch (error) {
-      console.error('Failed to generate suggestions:', error)
-      setError('Failed to generate suggestions. Try quick actions instead.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleQuickAction = async (actionId: string) => {
+    // Validate text is not empty
+    if (!text || text.trim().length === 0) {
+      setError('Please enter some text first')
+      return
+    }
+
     setIsLoading(true)
     setActiveAction(actionId)
     setError(null)
     setPreviewText(null)
     try {
-      const enhanced = await enhanceWithAI(text, actionId as 'improve-text' | 'make-romantic' | 'make-formal' | 'make-casual' | 'shorten' | 'lengthen' | 'fix-grammar' | 'add-emoji', { recipientName, occasion })
+      const enhanced = await enhanceWithAI(
+        text.trim(), 
+        actionId as 'improve-text' | 'make-romantic' | 'make-formal' | 'make-casual' | 'shorten' | 'lengthen' | 'fix-grammar' | 'add-emoji', 
+        { recipientName, occasion }
+      )
+      
+      if (!enhanced || enhanced.trim().length === 0) {
+        throw new Error('AI returned empty response')
+      }
+      
       setPreviewText(enhanced)
       // Auto-apply after a brief preview
       setTimeout(() => {
         onApply(enhanced)
         onClose()
-      }, 300)
+      }, 500)
     } catch (error) {
       console.error('Enhancement failed:', error)
-      setError('Enhancement failed. Please try again.')
+      setError(error instanceof Error ? error.message : 'Enhancement failed. Please try again.')
       setActiveAction(null)
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const applySuggestion = (suggestion: string) => {
-    onApply(suggestion)
-    onClose()
   }
 
   const handleOpenFullPopup = () => {
@@ -141,7 +80,6 @@ export function AIInlineAssistant({
 
   const handleRetry = () => {
     setError(null)
-    generateSuggestions()
   }
 
   const handleCopyText = (textToCopy: string) => {
@@ -165,7 +103,7 @@ export function AIInlineAssistant({
     const maxWidth = 400
     const maxHeight = 500
     const padding = 16
-    
+
     let left = position.x
     let top = position.y
 
@@ -192,17 +130,25 @@ export function AIInlineAssistant({
   const { left, top } = getPosition()
 
   return (
-    <div
-      ref={containerRef}
-      className="fixed z-[100] bg-white rounded-2xl shadow-2xl border-2 border-purple-200 overflow-hidden animate-scale-in backdrop-blur-sm"
-      style={{
-        left: `${left}px`,
-        top: `${top}px`,
-        maxWidth: '400px',
-        width: 'min(90vw, 400px)',
-        maxHeight: 'min(80vh, 500px)',
-      }}
-    >
+    <>
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 z-[99] bg-black/20 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Popup */}
+      <div
+        ref={containerRef}
+        className="fixed z-[100] bg-white rounded-2xl shadow-2xl border-2 border-purple-200 overflow-hidden animate-scale-in"
+        style={{
+          left: `${left}px`,
+          top: `${top}px`,
+          maxWidth: '400px',
+          width: 'min(90vw, 400px)',
+          maxHeight: 'min(80vh, 500px)',
+        }}
+      >
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 px-4 py-3 flex items-center justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
@@ -235,7 +181,7 @@ export function AIInlineAssistant({
       </div>
 
       {/* Original Text Preview */}
-      {text && text.length > 0 && (
+      {text && text.trim().length > 0 ? (
         <div className="px-4 pt-3 pb-2 bg-gray-50/50 border-b">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Your Text</span>
@@ -247,7 +193,14 @@ export function AIInlineAssistant({
               <Copy size={12} />
             </button>
           </div>
-          <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">{text}</p>
+          <p className="text-xs text-gray-700 line-clamp-3 leading-relaxed break-words">{text}</p>
+        </div>
+      ) : (
+        <div className="px-4 pt-3 pb-2 bg-yellow-50/50 border-b border-yellow-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle size={14} className="text-yellow-600" />
+            <span className="text-xs text-yellow-700">Please enter some text to enhance</span>
+          </div>
         </div>
       )}
 
@@ -255,21 +208,17 @@ export function AIInlineAssistant({
       <div className="p-3 border-b bg-gradient-to-b from-gray-50 to-white">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs text-gray-700 font-semibold">Quick Actions</p>
-          {suggestions.length > 0 && (
-            <span className="text-[10px] text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">
-              {suggestions.length} suggestions below
-            </span>
-          )}
         </div>
         <div className="grid grid-cols-2 gap-2">
           {quickActions.map((action) => {
             const Icon = action.icon
             const isActive = activeAction === action.id
+            const isDisabled = isLoading || !text || text.trim().length === 0
             return (
               <button
                 key={action.id}
                 onClick={() => handleQuickAction(action.id)}
-                disabled={isLoading}
+                disabled={isDisabled}
                 className={`group relative flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl bg-gradient-to-br ${action.color} text-white text-xs font-semibold shadow-md hover:shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden`}
               >
                 {isActive && isLoading && (
@@ -315,116 +264,6 @@ export function AIInlineAssistant({
           </div>
         </div>
       )}
-
-      {/* Suggestions */}
-      <div className="p-3 max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-thumb-purple-200 scrollbar-track-transparent" ref={suggestionsRef}>
-        {isLoading && suggestions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="relative">
-              <Loader2 className="text-purple-600 animate-spin mb-3" size={36} />
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-purple-400 animate-pulse" size={18} />
-            </div>
-            <p className="text-sm text-gray-700 font-medium mb-1">Generating suggestions...</p>
-            <p className="text-xs text-gray-500">This will take just a moment</p>
-          </div>
-        ) : suggestions.length > 0 ? (
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-700 font-semibold flex items-center gap-1.5">
-                <Sparkles size={12} className="text-purple-500" />
-                AI Suggestions
-              </p>
-              <span className="text-[10px] text-gray-500">Use ↑↓ to navigate</span>
-            </div>
-            {suggestions.map((suggestion, index) => (
-              <button
-                key={index}
-                onClick={() => applySuggestion(suggestion.text)}
-                className={`w-full text-left p-3.5 rounded-xl border-2 transition-all duration-200 group relative overflow-hidden ${
-                  index === selectedIndex
-                    ? 'border-purple-400 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md scale-[1.02]'
-                    : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/50'
-                }`}
-                onMouseEnter={() => setSelectedIndex(index)}
-              >
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="bg-green-500 text-white p-1.5 rounded-full shadow-lg">
-                    <Check size={12} />
-                  </div>
-                </div>
-                <div className="flex items-start gap-2.5 pr-8">
-                  <div className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
-                    index === selectedIndex 
-                      ? 'bg-purple-500 text-white' 
-                      : 'bg-purple-100 text-purple-600'
-                  }`}>
-                    {index + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className="text-[10px] font-semibold text-purple-600 uppercase tracking-wide">
-                        {suggestionLabels[suggestion.type] || '✨ Enhanced'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-800 leading-relaxed line-clamp-3">
-                      {suggestion.text}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        ) : text && text.length > 0 && !isLoading ? (
-          <div className="text-center py-6 text-gray-400">
-            <div className="bg-purple-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-              <Sparkles size={24} className="text-purple-400" />
-            </div>
-            <p className="text-sm font-medium text-gray-600 mb-1">No suggestions yet</p>
-            <p className="text-xs text-gray-500">Try quick actions above or click "More options" for all enhancements</p>
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-400">
-            <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-              <Sparkles size={32} className="text-gray-300" />
-            </div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Ready to enhance</p>
-            <p className="text-xs text-gray-400">Type something to get AI suggestions</p>
-          </div>
-        )}
-      </div>
-
-      {/* Footer Tip */}
-      {suggestions.length > 0 && !isLoading && (
-        <div className="px-3 py-2.5 bg-gradient-to-r from-purple-50 to-pink-50 border-t border-purple-100">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-purple-700 font-medium flex items-center gap-1.5">
-              <span>💡</span>
-              <span>Click to apply • Press Enter for selected</span>
-            </p>
-            <button
-              onClick={handleOpenFullPopup}
-              className="text-xs text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-1 transition-colors"
-            >
-              More options
-              <Maximize2 size={12} />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Empty Footer */}
-      {suggestions.length === 0 && !isLoading && text && text.length > 0 && (
-        <div className="px-3 py-2 bg-gray-50 border-t text-center">
-          <button
-            onClick={handleOpenFullPopup}
-            className="text-xs text-purple-600 hover:text-purple-800 font-semibold flex items-center justify-center gap-1.5 mx-auto transition-colors"
-          >
-            <Maximize2 size={12} />
-            View all enhancement options
-          </button>
-        </div>
-      )}
-
       {/* Full Enhancement Popup */}
       {showFullPopup && (
         <AIEnhancementPopup
@@ -504,7 +343,7 @@ export function AIInlineAssistant({
           overflow: hidden;
         }
       `}</style>
-    </div>
+      </div>
+    </>
   )
 }
-

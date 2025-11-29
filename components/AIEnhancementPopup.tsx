@@ -76,20 +76,35 @@ export function AIEnhancementPopup({
   }, [])
 
   const handleEnhance = async (enhancement: AIFeatureType) => {
+    // Validate text for non-generate enhancements
+    if (enhancement !== 'generate-text' && (!text || text.trim().length === 0)) {
+      setError('Please enter some text first')
+      return
+    }
+
     setIsLoading(true)
     setSelectedEnhancement(enhancement)
     setResult(null)
     setError(null)
 
     try {
-      const enhanced = await enhanceWithAI(text, enhancement, {
-        recipientName,
-        occasion,
-      })
+      const enhanced = await enhanceWithAI(
+        enhancement === 'generate-text' ? '' : text.trim(), 
+        enhancement, 
+        {
+          recipientName,
+          occasion,
+        }
+      )
+      
+      if (!enhanced || enhanced.trim().length === 0) {
+        throw new Error('AI returned empty response')
+      }
+      
       setResult(enhanced)
     } catch (err) {
       console.error('Enhancement failed:', err)
-      setError('AI enhancement failed. Please try again.')
+      setError(err instanceof Error ? err.message : 'AI enhancement failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -128,8 +143,11 @@ export function AIEnhancementPopup({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[101] flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div 
+        className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-5xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -163,7 +181,7 @@ export function AIEnhancementPopup({
                     <div className="w-2 h-2 rounded-full bg-gray-400"></div>
                     <label className="text-xs sm:text-sm font-semibold text-gray-600">Original</label>
                   </div>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 text-sm sm:text-base text-gray-800 min-h-[120px] max-h-[200px] overflow-y-auto">
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 text-sm sm:text-base text-gray-800 min-h-[120px] max-h-[200px] overflow-y-auto break-words whitespace-pre-wrap">
                     {originalText || <span className="text-gray-400 italic">No text yet...</span>}
                   </div>
                 </div>
@@ -177,7 +195,7 @@ export function AIEnhancementPopup({
                       Enhanced
                     </label>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg p-3 sm:p-4 text-sm sm:text-base text-gray-800 min-h-[120px] max-h-[200px] overflow-y-auto">
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-lg p-3 sm:p-4 text-sm sm:text-base text-gray-800 min-h-[120px] max-h-[200px] overflow-y-auto break-words whitespace-pre-wrap">
                     {result}
                   </div>
                 </div>
@@ -211,13 +229,24 @@ export function AIEnhancementPopup({
           ) : (
             <>
               {/* Original Text Preview */}
-              {text && (
+              {text && text.trim().length > 0 ? (
                 <div className="mb-4 sm:mb-6">
                   <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                     Your Text:
                   </label>
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 text-sm sm:text-base text-gray-800 max-h-32 overflow-y-auto">
-                    {text || <span className="text-gray-400 italic">No text yet...</span>}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 text-sm sm:text-base text-gray-800 max-h-32 overflow-y-auto break-words whitespace-pre-wrap">
+                    {text}
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-4 sm:mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle size={16} className="text-yellow-600" />
+                    <span className="text-xs sm:text-sm text-yellow-700">
+                      {selectedEnhancement === 'generate-text' 
+                        ? 'AI will generate new text for you' 
+                        : 'Please enter some text to enhance'}
+                    </span>
                   </div>
                 </div>
               )}
@@ -268,17 +297,20 @@ export function AIEnhancementPopup({
                         {enhancements.map((enhancement) => {
                           const Icon = enhancement.icon
                           const isSelected = selectedEnhancement === enhancement.id
+                          const requiresText = enhancement.id !== 'generate-text'
+                          const isDisabled = isLoading || (requiresText && (!text || text.trim().length === 0))
                           
                           return (
                             <button
                               key={enhancement.id}
                               onClick={() => handleEnhance(enhancement.id)}
-                              disabled={isLoading}
+                              disabled={isDisabled}
                               className={`group relative bg-gradient-to-br ${
                                 colorClasses[enhancement.color as keyof typeof colorClasses]
                               } text-white p-3 sm:p-4 rounded-xl shadow-md transition-all hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${
                                 isSelected ? 'ring-2 ring-offset-2 ring-purple-500 scale-105' : ''
                               }`}
+                              title={isDisabled && requiresText ? 'Please enter text first' : enhancement.description}
                             >
                               <div className="flex flex-col items-start gap-2">
                                 <div className="flex items-center gap-2 w-full">
