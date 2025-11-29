@@ -1,5 +1,6 @@
 // AI Enhancement System for Visual Editor
 import { Sparkles, Wand2, RefreshCw, Languages, MessageSquare } from 'lucide-react'
+import { enhanceText } from '@/lib/actions/ai'
 
 export type AIFeatureType =
   | 'improve-text'
@@ -123,20 +124,21 @@ export async function enhanceWithAI(
   }
 ): Promise<string> {
   try {
-    const response = await fetch('/api/ai/enhance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        enhancement,
-        context,
-      }),
+    const result = await enhanceText({
+      text,
+      enhancement: enhancement as any,
+      context,
     })
 
-    if (!response.ok) throw new Error('AI enhancement failed')
+    if (result.error) {
+      throw new Error(result.error)
+    }
 
-    const data = await response.json()
-    return data.enhanced_text
+    if (!result.enhanced_text) {
+      throw new Error('AI enhancement failed')
+    }
+
+    return result.enhanced_text
   } catch (error) {
     console.error('AI enhancement error:', error)
     throw error

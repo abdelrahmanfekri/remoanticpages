@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { verifyPagePassword } from '@/lib/actions/pages'
 
 export function PasswordForm({ slug, recipientName }: { slug: string; recipientName: string }) {
   const [password, setPassword] = useState('')
@@ -14,18 +15,12 @@ export function PasswordForm({ slug, recipientName }: { slug: string; recipientN
     setLoading(true)
     setError('')
 
-    const res = await fetch(`/api/pages/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug, password }),
-    })
+    const result = await verifyPagePassword(slug, password)
 
-    const data = await res.json()
-
-    if (data.valid) {
+    if (result.valid) {
       window.location.href = `/p/${slug}`
     } else {
-      setError(data.error || 'Incorrect password')
+      setError(result.error || 'Incorrect password')
       setLoading(false)
     }
   }

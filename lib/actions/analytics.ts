@@ -1,15 +1,19 @@
+'use server'
+
 import { createClient } from '@/lib/supabase/server'
-import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
+export interface TrackAnalyticsResult {
+  success?: boolean
+  error?: string
+}
+
+export async function trackAnalytics(
+  pageId: string,
+  eventType: 'view' | 'share'
+): Promise<TrackAnalyticsResult> {
   try {
-    const { pageId, eventType } = await request.json()
-
     if (!pageId || !eventType) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+      return { error: 'Missing required fields' }
     }
 
     const supabase = await createClient()
@@ -22,7 +26,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!page) {
-      return NextResponse.json({ error: 'Page not found' }, { status: 404 })
+      return { error: 'Page not found' }
     }
 
     // Update view_count or share_count
@@ -48,7 +52,7 @@ export async function POST(request: NextRequest) {
         .from('pages')
         .select('share_count')
         .eq('id', pageId)
-      .single()
+        .single()
 
       if (currentPage) {
         await supabase
@@ -58,14 +62,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ success: true })
+    return { success: true }
   } catch (error) {
     console.error('Analytics tracking error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to track analytics'
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    )
+    return { error: errorMessage }
   }
 }
 

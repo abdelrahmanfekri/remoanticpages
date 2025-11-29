@@ -1,6 +1,8 @@
 /**
  * AI utilities for text generation and translation
  */
+import { translateAIText } from '@/lib/actions/ai'
+import { generateAIText } from '@/lib/actions/ai'
 
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English', native: 'English' },
@@ -66,24 +68,29 @@ export function getLanguageName(code: string): string {
   return language?.name || code
 }
 
+
 export async function translateText(
   text: string,
   targetLanguage: LanguageCode,
   context?: string
 ): Promise<string> {
-  const response = await fetch('/api/ai/translate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, targetLanguage, context }),
+  const result = await translateAIText({
+    text,
+    targetLanguage,
+    context,
   })
 
-  if (!response.ok) {
+  if (result.error) {
+    throw new Error(result.error)
+  }
+
+  if (!result.translatedText) {
     throw new Error('Translation failed')
   }
 
-  const data = await response.json()
-  return data.translatedText
+  return result.translatedText
 }
+
 
 export async function generateText(
   type: 'hero' | 'intro' | 'memory' | 'final',
@@ -91,17 +98,21 @@ export async function generateText(
   recipientName: string,
   context?: string
 ): Promise<string> {
-  const response = await fetch('/api/ai/generate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type, language, recipientName, context }),
+  const result = await generateAIText({
+    type,
+    language,
+    recipientName,
+    context,
   })
 
-  if (!response.ok) {
+  if (result.error) {
+    throw new Error(result.error)
+  }
+
+  if (!result.text) {
     throw new Error('Text generation failed')
   }
 
-  const data = await response.json()
-  return data.text
+  return result.text
 }
 

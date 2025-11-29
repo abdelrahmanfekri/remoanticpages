@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { trackAnalytics } from '@/lib/actions/analytics'
 
 interface AnalyticsTrackerProps {
   pageId: string
@@ -11,14 +12,7 @@ export function AnalyticsTracker({ pageId, eventType }: AnalyticsTrackerProps) {
   useEffect(() => {
     const trackEvent = async () => {
       try {
-        await fetch('/api/analytics/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            pageId,
-            eventType,
-          }),
-        })
+        await trackAnalytics(pageId, eventType)
       } catch (error) {
         console.error('Analytics tracking failed:', error)
       }
