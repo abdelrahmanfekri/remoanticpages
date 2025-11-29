@@ -60,7 +60,7 @@ export default async function HomePage() {
 
             {/* Subheading */}
             <p className="text-xl md:text-2xl lg:text-3xl text-gray-700 max-w-3xl mx-auto leading-relaxed font-light">
-              The best platform to create beautiful love pages, romantic websites, and personalized digital gifts.
+              The best platform to create beautiful heartful pages, romantic websites, and personalized digital gifts.
               <span className="block mt-3 text-lg md:text-xl text-rose-600 font-medium">
                 Perfect for birthdays, anniversaries, proposals, and romantic surprises. ❤️
               </span>
@@ -83,7 +83,7 @@ export default async function HomePage() {
               >
                 <span className="relative z-10 flex items-center gap-2">
                   <Sparkles size={20} className="group-hover:rotate-180 transition-transform duration-500" />
-                  Create Free Love Page
+                  Create Free Heartful Page
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-rose-600 via-pink-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </Link>
@@ -124,7 +124,7 @@ export default async function HomePage() {
             <h2 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 mb-4">
               Popular Features
             </h2>
-            <p className="text-lg text-gray-600">Everything you need to create the perfect romantic page</p>
+            <p className="text-lg text-gray-600">Everything you need to create the perfect heartful page</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -134,7 +134,7 @@ export default async function HomePage() {
               { icon: '💒', title: 'Wedding Website Builder', desc: 'Beautiful wedding celebration sites with timeline and gallery', color: 'from-purple-50 to-pink-50', border: 'border-purple-200' },
               { icon: '💝', title: 'Romantic Gift Ideas', desc: 'Digital love gifts that last forever, perfect for any occasion', color: 'from-red-50 to-rose-50', border: 'border-red-200' },
               { icon: '📅', title: 'Relationship Timeline', desc: 'Share your love story timeline with beautiful memories', color: 'from-orange-50 to-amber-50', border: 'border-orange-200' },
-              { icon: '✨', title: 'Personalized Love Pages', desc: 'Custom websites for your partner, completely unique and personal', color: 'from-pink-50 to-purple-50', border: 'border-pink-200' },
+              { icon: '✨', title: 'Personalized Heartful Pages', desc: 'Custom websites for your partner, completely unique and personal', color: 'from-pink-50 to-purple-50', border: 'border-pink-200' },
             ].map((feature, i) => (
               <div key={i} className={`bg-gradient-to-br ${feature.color} border ${feature.border} rounded-2xl p-6 hover:scale-105 transition-all duration-300 hover:shadow-xl animate-soft-rise`} style={{ animationDelay: `${i * 0.1}s` }}>
                 <div className="text-4xl mb-3">{feature.icon}</div>
@@ -182,7 +182,7 @@ export default async function HomePage() {
                 bgColor: 'from-purple-50 to-pink-50',
                 borderColor: 'border-purple-200',
                 title: 'Mobile-First Experience',
-                desc: 'Looks stunning on every device. Your love page adapts perfectly to phones, tablets, and desktops.',
+                desc: 'Looks stunning on every device. Your heartful page adapts perfectly to phones, tablets, and desktops.',
               },
               {
                 icon: Zap,
@@ -317,13 +317,13 @@ export default async function HomePage() {
               {
                 name: 'James K.',
                 location: 'United Kingdom',
-                text: 'We used Love Pages for our wedding website. Our guests loved it! Way better than those expensive, complicated alternatives.',
+                text: 'We used Heartful Pages for our wedding website. Our guests loved it! Way better than those expensive, complicated alternatives.',
                 rating: 5,
               },
               {
                 name: 'Maria L.',
                 location: 'Spain',
-                text: 'Made an anniversary page for my partner who cried happy tears! It\'s so romantic and personal. Thank you Love Pages!',
+                text: 'Made an anniversary page for my partner who cried happy tears! It\'s so romantic and personal. Thank you Heartful Pages!',
                 rating: 5,
               },
             ].map((testimonial, i) => (

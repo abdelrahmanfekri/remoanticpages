@@ -74,7 +74,7 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
       // Get title from content or use template name
       const title = (heroData.title as string) || 
                    (introData.title as string) ||
-                   'My Love Page'
+                   'My Heartful Page'
 
       // Convert VisualTemplateEditor format to API format
       const currentTemplateId = resolvedParams?.templateId || templateId

@@ -33,7 +33,7 @@ export default async function DashboardPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-serif text-rose-500 mb-2">My Love Pages</h1>
+            <h1 className="text-4xl font-serif text-rose-500 mb-2">My Heartful Pages</h1>
             <p className="text-gray-600">Create beautiful pages for the ones you love</p>
           </div>
           <div className="flex items-center gap-4">
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
           <div className="text-center py-20">
             <Heart className="mx-auto text-rose-300 mb-4" size={64} />
             <h2 className="text-2xl font-serif text-gray-700 mb-2">No pages yet</h2>
-            <p className="text-gray-600 mb-6">Create your first love page to get started!</p>
+            <p className="text-gray-600 mb-6">Create your first heartful page to get started!</p>
             <Link
               href="/dashboard/create"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-full soft-glow hover:scale-105 transition-transform duration-200"

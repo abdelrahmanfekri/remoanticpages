@@ -1,6 +1,6 @@
 """
 AI-Powered Content Generator for Social Media
-Generates diverse, engaging content for romantic pages business
+Generates diverse, engaging content for heartful pages business
 """
 
 import json
@@ -422,7 +422,7 @@ Return one topic per line, no numbers or bullets."""
             "Long distance relationship gift ideas",
             "Proposal ideas that wow",
             "Celebrating love milestones",
-            "DIY romantic page tutorials",
+            "DIY heartful page tutorials",
             "Love story inspiration",
             "Valentine's Day alternatives",
             "Thoughtful gift ideas for partners",
@@ -539,7 +539,7 @@ Return one topic per line, no numbers or bullets."""
 def main():
     """Main function"""
     print("\n" + "="*70)
-    print("🎨 AI Content Generator for Romantic Pages")
+    print("🎨 AI Content Generator for Heartful Pages")
     print("="*70 + "\n")
     
     generator = ContentGenerator()

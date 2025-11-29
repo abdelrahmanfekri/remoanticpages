@@ -1,6 +1,6 @@
-# Love Pages - AI-Powered Romantic Page Generator ✨
+# Heartful Pages - AI-Powered Heartful Page Generator ✨
 
-A beautiful, **mobile-first** SaaS platform for creating personalized love pages for birthdays, anniversaries, proposals, and special moments. Features an **intuitive visual editor** with **inline AI assistance** for instant text enhancement.
+A beautiful, **mobile-first** SaaS platform for creating personalized heartful pages for birthdays, anniversaries, proposals, and special moments. Features an **intuitive visual editor** with **inline AI assistance** for instant text enhancement.
 
 ## ✨ Key Features
 
@@ -430,4 +430,4 @@ Private - All rights reserved
 
 **Built with ❤️ using Next.js 15, Supabase, and OpenAI**
 
-*Create beautiful, personalized love pages in minutes, not hours!* ✨
+*Create beautiful, personalized heartful pages in minutes, not hours!* ✨

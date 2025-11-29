@@ -365,7 +365,7 @@ DESCRIPTION: [your description]"""
         # Get templates from your database/config
         templates = [
             {"id": "romantic-birthday", "name": "Romantic Birthday Page"},
-            {"id": "anniversary-love", "name": "Anniversary Love Page"},
+            {"id": "anniversary-love", "name": "Anniversary Heartful Page"},
             {"id": "valentine-special", "name": "Valentine's Day Special"},
             {"id": "proposal-page", "name": "Proposal Page"},
             {"id": "wedding-invitation", "name": "Wedding Invitation Page"}

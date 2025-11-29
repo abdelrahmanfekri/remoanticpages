@@ -96,7 +96,7 @@ export default function LoginPage() {
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </h1>
           <p className="text-gray-600">
-            {isSignUp ? 'Sign up to create beautiful love pages' : 'Sign in to create beautiful love pages'}
+            {isSignUp ? 'Sign up to create beautiful heartful pages' : 'Sign in to create beautiful heartful pages'}
           </p>
         </div>
 

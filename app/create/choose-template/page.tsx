@@ -54,7 +54,7 @@ export default async function ChooseTemplatePage() {
             Choose Your Template
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Select a template to start creating your love page
+            Select a template to start creating your heartful page
           </p>
         </div>
 

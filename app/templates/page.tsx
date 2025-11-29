@@ -183,7 +183,7 @@ export default async function TemplatesPage({
               Ready to Create Your Page?
             </h2>
             <p className="text-gray-600 mb-6">
-              Choose a template above and start creating your beautiful love page in minutes.
+              Choose a template above and start creating your beautiful heartful page in minutes.
             </p>
             <Link
               href="/login"

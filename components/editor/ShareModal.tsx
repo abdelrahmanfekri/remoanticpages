@@ -23,7 +23,7 @@ export function ShareModal({ isOpen, shareUrl, onClose, onCopyUrl }: ShareModalP
             Page Published! 🎉
           </h3>
           <p className="text-gray-600">
-            Your romantic page is live and ready to share
+            Your heartful page is live and ready to share
           </p>
         </div>
 

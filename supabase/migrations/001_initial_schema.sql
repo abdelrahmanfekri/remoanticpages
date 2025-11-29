@@ -1,5 +1,5 @@
 -- ============================================
--- LOVE PAGES - COMPLETE DATABASE SCHEMA
+-- HEARTFUL PAGES - COMPLETE DATABASE SCHEMA
 -- Production-ready schema for fresh installation
 -- Version: 1.0
 -- ============================================
