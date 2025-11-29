@@ -92,8 +92,8 @@ export function AIEnhancementPopup({
         enhancement === 'generate-text' ? '' : text.trim(), 
         enhancement, 
         {
-          recipientName,
-          occasion,
+        recipientName,
+        occasion,
         }
       )
       

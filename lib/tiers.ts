@@ -152,12 +152,50 @@ export function getTierDisplayName(tier: Tier): string {
   return names[tier]
 }
 
+/**
+ * Pricing configuration - single source of truth for all pricing
+ */
+export interface TierPricing {
+  name: string
+  price: number // Price in dollars (e.g., 4.99)
+  priceInCents: number // Price in cents for Stripe (e.g., 499)
+  priceLabel: string // Display label (e.g., "per month")
+  description: string
+}
+
+export const TIER_PRICING: Record<Tier, TierPricing> = {
+  free: {
+    name: 'Free',
+    price: 0,
+    priceInCents: 0,
+    priceLabel: 'Forever Free',
+    description: 'Perfect for trying out',
+  },
+  premium: {
+    name: 'Premium',
+    price: 4.99,
+    priceInCents: 499, // $4.99 in cents
+    priceLabel: 'per month',
+    description: 'Best value for creators',
+  },
+  pro: {
+    name: 'Pro',
+    price: 9.99,
+    priceInCents: 999, // $9.99 in cents
+    priceLabel: 'per month',
+    description: 'Everything unlocked',
+  },
+}
+
 export function getTierPrice(tier: Tier): number {
-  const prices = {
-    free: 0,
-    premium: 4.99, // Monthly subscription
-    pro: 9.99, // Monthly subscription
-  }
-  return prices[tier]
+  return TIER_PRICING[tier].price
+}
+
+export function getTierPriceInCents(tier: Tier): number {
+  return TIER_PRICING[tier].priceInCents
+}
+
+export function getTierPricing(tier: Tier): TierPricing {
+  return TIER_PRICING[tier]
 }
 

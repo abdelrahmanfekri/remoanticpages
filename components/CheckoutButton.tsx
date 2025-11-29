@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Loader2, CreditCard } from 'lucide-react'
+import { getTierPricing, type Tier } from '@/lib/tiers'
 
 interface CheckoutButtonProps {
   tier: 'premium' | 'pro'
@@ -10,6 +11,8 @@ interface CheckoutButtonProps {
 export default function CheckoutButton({ tier }: CheckoutButtonProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const pricing = getTierPricing(tier as Tier)
 
   const handleCheckout = async () => {
     setLoading(true)
@@ -57,7 +60,7 @@ export default function CheckoutButton({ tier }: CheckoutButtonProps) {
         ) : (
           <>
             <CreditCard size={20} />
-            Subscribe ${tier === 'premium' ? '4.99' : '9.99'}/month
+            Subscribe ${pricing.price}/{pricing.priceLabel}
           </>
         )}
       </button>

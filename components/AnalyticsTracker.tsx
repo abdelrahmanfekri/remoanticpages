@@ -4,11 +4,10 @@ import { useEffect } from 'react'
 
 interface AnalyticsTrackerProps {
   pageId: string
-  eventType: 'view' | 'share' | 'click'
-  metadata?: Record<string, string | number | boolean>
+  eventType: 'view' | 'share'
 }
 
-export function AnalyticsTracker({ pageId, eventType, metadata }: AnalyticsTrackerProps) {
+export function AnalyticsTracker({ pageId, eventType }: AnalyticsTrackerProps) {
   useEffect(() => {
     const trackEvent = async () => {
       try {
@@ -18,7 +17,6 @@ export function AnalyticsTracker({ pageId, eventType, metadata }: AnalyticsTrack
           body: JSON.stringify({
             pageId,
             eventType,
-            metadata,
           }),
         })
       } catch (error) {
@@ -26,10 +24,10 @@ export function AnalyticsTracker({ pageId, eventType, metadata }: AnalyticsTrack
       }
     }
 
-    if (eventType === 'view') {
+    if (eventType === 'view' || eventType === 'share') {
       trackEvent()
     }
-  }, [pageId, eventType, metadata])
+  }, [pageId, eventType])
 
   return null
 }

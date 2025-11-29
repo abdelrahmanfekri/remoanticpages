@@ -138,17 +138,17 @@ export function AIInlineAssistant({
       />
       
       {/* Popup */}
-      <div
-        ref={containerRef}
+    <div
+      ref={containerRef}
         className="fixed z-[100] bg-white rounded-2xl shadow-2xl border-2 border-purple-200 overflow-hidden animate-scale-in"
-        style={{
-          left: `${left}px`,
-          top: `${top}px`,
-          maxWidth: '400px',
-          width: 'min(90vw, 400px)',
-          maxHeight: 'min(80vh, 500px)',
-        }}
-      >
+      style={{
+        left: `${left}px`,
+        top: `${top}px`,
+        maxWidth: '400px',
+        width: 'min(90vw, 400px)',
+        maxHeight: 'min(80vh, 500px)',
+      }}
+    >
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 px-4 py-3 flex items-center justify-between relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
@@ -343,7 +343,7 @@ export function AIInlineAssistant({
           overflow: hidden;
         }
       `}</style>
-      </div>
+    </div>
     </>
   )
 }
