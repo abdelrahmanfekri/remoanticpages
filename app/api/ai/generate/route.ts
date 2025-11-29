@@ -78,7 +78,7 @@ Write only the message in ${langName}, no explanations.`
     }
 
     const { text: generatedText } = await generateText({
-      model: openai('gpt-5-nano'),
+      model: openai('gpt-4o-mini'),
       prompt,
       temperature: 0.8,
       maxTokens: 500,

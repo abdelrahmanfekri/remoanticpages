@@ -43,7 +43,7 @@ Original text: "${text}"
 Provide only the translation in ${targetLangName}, maintaining the same style and emotional impact.`
 
     const { text: translatedText } = await generateText({
-      model: openai('gpt-5-nano'),
+      model: openai('gpt-4o-mini'),
       prompt,
       temperature: 0.7,
       maxTokens: 1000,

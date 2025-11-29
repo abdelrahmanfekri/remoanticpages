@@ -117,7 +117,7 @@ Return only the version with emojis, nothing else.`
     }
 
     const { text: enhancedText } = await generateText({
-      model: openai('gpt-5-nano'),
+      model: openai('gpt-4o-mini'),
       prompt,
       temperature: 0.7,
       maxTokens: 500,
