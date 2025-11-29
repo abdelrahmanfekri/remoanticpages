@@ -22,12 +22,17 @@ export async function POST(request: NextRequest) {
     const { tier } = body
 
     if (!tier || (tier !== 'premium' && tier !== 'pro')) {
-      return NextResponse.json({ error: 'Invalid tier' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid tier. Must be "premium" or "pro"' }, { status: 400 })
     }
 
     // Get pricing from centralized config
     const pricing = getTierPricing(tier as Tier)
     const priceInCents = getTierPriceInCents(tier as Tier)
+
+    // Validate pricing exists
+    if (!pricing || priceInCents <= 0) {
+      return NextResponse.json({ error: 'Invalid pricing configuration' }, { status: 500 })
+    }
 
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
