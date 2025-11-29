@@ -70,10 +70,11 @@ export function InlineComponentEditor({
             e.stopPropagation()
             onAIEnhance(field, component.type, fieldType, e)
           }}
-          className="absolute -right-3 top-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-all z-10 touch-manipulation"
-          title="Enhance with AI"
+          className="absolute -right-2 top-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2.5 rounded-full shadow-xl hover:scale-110 active:scale-95 transition-all z-10 touch-manipulation border-2 border-white group"
+          title="✨ AI Assistant - Click to generate or enhance text"
+          aria-label="AI Assistant"
         >
-          <Sparkles size={16} />
+          <Sparkles size={18} className="group-hover:rotate-180 transition-transform duration-500" />
         </button>
       </div>
     )
@@ -85,10 +86,14 @@ export function InlineComponentEditor({
         <div className="flex items-center gap-2">
           <span className="text-2xl">{component.icon}</span>
           <h3 className="text-lg font-bold text-gray-900">Edit {component.label}</h3>
+          <div className="flex items-center gap-1 px-2 py-1 bg-purple-100 rounded-full">
+            <Sparkles size={12} className="text-purple-600" />
+            <span className="text-xs font-semibold text-purple-700">AI Available</span>
+          </div>
         </div>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-white rounded-lg transition-colors"
+          className="p-2 hover:bg-white rounded-lg transition-colors touch-manipulation"
         >
           <X size={20} />
         </button>
@@ -188,9 +193,48 @@ export function InlineComponentEditor({
           </>
         )}
 
+        {/* Add fields for other component types */}
+        {component.type === 'two-column' && (
+          <>
+            {renderField('title', 'Section Title', 'text', undefined, 'title')}
+            {renderField('leftText', 'Left Column', 'textarea', 'Content for left column...', 'message')}
+            {renderField('rightText', 'Right Column', 'textarea', 'Content for right column...', 'message')}
+          </>
+        )}
+
+        {component.type === 'testimonials' && (
+          <>
+            {renderField('title', 'Section Title', 'text', undefined, 'title')}
+            {renderField('testimonial', 'Testimonial', 'textarea', 'Write a testimonial...', 'message')}
+            {renderField('author', 'Author Name', 'text', 'Author name (optional)', 'title')}
+          </>
+        )}
+
+        {component.type === 'video-section' && (
+          <>
+            {renderField('title', 'Section Title', 'text', undefined, 'title')}
+            {renderField('description', 'Description', 'textarea', 'Describe the video...', 'message')}
+          </>
+        )}
+
+        {component.type === 'map-location' && (
+          <>
+            {renderField('title', 'Location Title', 'text', undefined, 'title')}
+            {renderField('description', 'Location Description', 'textarea', 'Describe the location...', 'message')}
+          </>
+        )}
+
+        {/* Default fallback for any component type without specific fields */}
+        {!['hero', 'intro', 'text-block', 'final-message', 'quote', 'timeline', 'memories-grid', 'countdown', 'two-column', 'testimonials', 'video-section', 'map-location'].includes(component.type) && (
+          <>
+            {renderField('title', 'Title', 'text', 'Enter a title...', 'title')}
+            {renderField('text', 'Content', 'textarea', 'Enter content...', 'message')}
+          </>
+        )}
+
         <button
           onClick={onClose}
-          className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform"
+          className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:scale-105 transition-transform touch-manipulation"
         >
           Done Editing
         </button>

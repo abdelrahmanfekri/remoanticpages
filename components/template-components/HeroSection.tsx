@@ -72,8 +72,8 @@ export function HeroSection({
     return field[lang] || field.en || ''
   }
 
-  const heroTitle = settingsTitle || defaultContent.title || page.title
-  const heroSubtitle = settingsSubtitle || defaultContent.subtitle || page.recipient_name
+  const heroTitle = page.title || settingsTitle || defaultContent.title
+  const heroSubtitle = page.recipient_name || settingsSubtitle || defaultContent.subtitle
   const heroImage = defaultContent.image || null
 
   const currentMedia = heroImage ? null : page.media?.[0]

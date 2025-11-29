@@ -80,71 +80,78 @@ export async function enhanceText(params: EnhanceTextParams): Promise<EnhanceTex
       case 'improve-text':
         prompt = `${contextPrefix}Improve this text to be more engaging, beautiful, and heartfelt. Keep the same meaning but make it more emotionally resonant:
 
-"${text}"
+${text}
 
-Return only the improved version, nothing else.`
+Return only the improved version, nothing else. Do not include quotes.`
         break
 
       case 'make-romantic':
         prompt = `${contextPrefix}Make this text more romantic and loving. Add warmth and affection while keeping the core message:
 
-"${text}"
+${text}
 
-Return only the romantic version, nothing else.`
+Return only the romantic version, nothing else. Do not include quotes.`
         break
 
       case 'make-formal':
         prompt = `${contextPrefix}Rewrite this text in a more formal and professional tone while maintaining respect and warmth:
 
-"${text}"
+${text}
 
-Return only the formal version, nothing else.`
+Return only the formal version, nothing else. Do not include quotes.`
         break
 
       case 'make-casual':
         prompt = `${contextPrefix}Rewrite this text in a casual, friendly, and relaxed tone:
 
-"${text}"
+${text}
 
-Return only the casual version, nothing else.`
+Return only the casual version, nothing else. Do not include quotes.`
         break
 
       case 'shorten':
         prompt = `${contextPrefix}Make this text shorter and more concise while keeping the main message:
 
-"${text}"
+${text}
 
-Return only the shortened version, nothing else.`
+Return only the shortened version, nothing else. Do not include quotes.`
         break
 
       case 'lengthen':
         prompt = `${contextPrefix}Expand this text with more details, descriptions, and emotional depth:
 
-"${text}"
+${text}
 
-Return only the lengthened version, nothing else.`
+Return only the lengthened version, nothing else. Do not include quotes.`
         break
 
       case 'fix-grammar':
         prompt = `${contextPrefix}Fix any spelling, grammar, and punctuation errors in this text. Keep the same style and tone:
 
-"${text}"
+${text}
 
-Return only the corrected version, nothing else.`
+Return only the corrected version, nothing else. Do not include quotes.`
         break
 
       case 'add-emoji':
         prompt = `${contextPrefix}Add appropriate emojis to this text to make it more fun and expressive. Don't overdo it:
 
-"${text}"
+${text}
 
-Return only the version with emojis, nothing else.`
+Return only the version with emojis, nothing else. Do not include quotes.`
         break
 
       case 'generate-text':
-        prompt = `Generate a heartfelt ${context?.occasion || 'celebration'} message${
+        const generateContext = context?.componentType || 'message'
+        const fieldGuidance = context?.fieldType === 'title' 
+          ? 'Keep it SHORT (2-8 words maximum). Be concise and impactful.'
+          : context?.fieldType === 'message'
+          ? 'Aim for 2-4 sentences with emotional depth and detail.'
+          : 'Make it warm, personal, and memorable. Length: 2-3 sentences.'
+        
+        prompt = `Generate a heartfelt ${context?.occasion || 'celebration'} ${generateContext} message${
           context?.recipientName ? ` for ${context.recipientName}` : ''
-        }. Make it warm, personal, and memorable. Length: 2-3 sentences.`
+        }. ${fieldGuidance} Do not include quotes in your response.`
         break
     }
 
@@ -155,8 +162,18 @@ Return only the version with emojis, nothing else.`
       maxTokens: 500,
     })
 
+    // Remove quotes from the beginning and end if present
+    let cleanedText = enhancedText.trim()
+    // Remove leading/trailing quotes (single or double)
+    cleanedText = cleanedText.replace(/^["']|["']$/g, '')
+    // Remove any quote-wrapped content
+    if ((cleanedText.startsWith('"') && cleanedText.endsWith('"')) || 
+        (cleanedText.startsWith("'") && cleanedText.endsWith("'"))) {
+      cleanedText = cleanedText.slice(1, -1)
+    }
+
     return {
-      enhanced_text: enhancedText.trim(),
+      enhanced_text: cleanedText.trim(),
     }
   } catch (error) {
     console.error('AI enhancement error:', error)
@@ -244,8 +261,18 @@ Write only the message in ${langName}, no explanations.`
       maxTokens: 500,
     })
 
+    // Remove quotes from the beginning and end if present
+    let cleanedText = generatedText.trim()
+    // Remove leading/trailing quotes (single or double)
+    cleanedText = cleanedText.replace(/^["']|["']$/g, '')
+    // Remove any quote-wrapped content
+    if ((cleanedText.startsWith('"') && cleanedText.endsWith('"')) || 
+        (cleanedText.startsWith("'") && cleanedText.endsWith("'"))) {
+      cleanedText = cleanedText.slice(1, -1)
+    }
+
     return {
-      text: generatedText.trim(),
+      text: cleanedText.trim(),
     }
   } catch (error) {
     console.error('Generation error:', error)
@@ -285,14 +312,14 @@ export async function translateAIText(params: TranslateTextParams): Promise<Tran
     const prompt = context
       ? `Translate the following romantic/love message to ${targetLangName}. Maintain the emotional tone, warmth, and romantic sentiment. The context is: ${context}. 
 
-Original text: "${text}"
+Original text: ${text}
 
-Provide only the translation in ${targetLangName}, maintaining the same style and emotional impact.`
+Provide only the translation in ${targetLangName}, maintaining the same style and emotional impact. Do not include quotes.`
       : `Translate the following romantic/love message to ${targetLangName}. Maintain the emotional tone, warmth, and romantic sentiment.
 
-Original text: "${text}"
+Original text: ${text}
 
-Provide only the translation in ${targetLangName}, maintaining the same style and emotional impact.`
+Provide only the translation in ${targetLangName}, maintaining the same style and emotional impact. Do not include quotes.`
 
     const { text: translatedText } = await generateText({
       model: openai('gpt-4o-mini'),
@@ -301,8 +328,18 @@ Provide only the translation in ${targetLangName}, maintaining the same style an
       maxTokens: 1000,
     })
 
+    // Remove quotes from the beginning and end if present
+    let cleanedText = translatedText.trim()
+    // Remove leading/trailing quotes (single or double)
+    cleanedText = cleanedText.replace(/^["']|["']$/g, '')
+    // Remove any quote-wrapped content
+    if ((cleanedText.startsWith('"') && cleanedText.endsWith('"')) || 
+        (cleanedText.startsWith("'") && cleanedText.endsWith("'"))) {
+      cleanedText = cleanedText.slice(1, -1)
+    }
+
     return {
-      translatedText: translatedText.trim(),
+      translatedText: cleanedText.trim(),
     }
   } catch (error) {
     console.error('Translation error:', error)

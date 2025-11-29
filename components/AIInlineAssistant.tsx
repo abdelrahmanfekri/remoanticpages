@@ -33,17 +33,17 @@ export function AIInlineAssistant({
   const [previewText, setPreviewText] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Quick enhancement options - most common actions, no default suggestion
+  // Quick enhancement options - Generate is first, then most common actions
   const quickActions = [
+    { id: 'generate-text', label: 'Generate', icon: Sparkles, color: 'from-blue-500 to-indigo-600', description: 'AI writes for you' },
     { id: 'improve-text', label: 'Improve', icon: Wand2, color: 'from-purple-500 to-purple-600', description: 'Enhance clarity' },
     { id: 'make-romantic', label: 'Romantic', icon: MessageSquare, color: 'from-pink-500 to-rose-600', description: 'Add romance' },
-    { id: 'fix-grammar', label: 'Fix Grammar', icon: Wand2, color: 'from-teal-500 to-teal-600', description: 'Correct errors' },
     { id: 'add-emoji', label: 'Add Emoji', icon: Sparkles, color: 'from-yellow-500 to-orange-600', description: 'Make fun' },
   ]
 
   const handleQuickAction = async (actionId: string) => {
-    // Validate text is not empty
-    if (!text || text.trim().length === 0) {
+    // Generate doesn't require existing text, others do
+    if (actionId !== 'generate-text' && (!text || text.trim().length === 0)) {
       setError('Please enter some text first')
       return
     }
@@ -70,8 +70,8 @@ export function AIInlineAssistant({
       }
 
       const enhanced = await enhanceWithAI(
-        text.trim(), 
-        actionId as 'improve-text' | 'make-romantic' | 'make-formal' | 'make-casual' | 'shorten' | 'lengthen' | 'fix-grammar' | 'add-emoji', 
+        actionId === 'generate-text' ? '' : text.trim(), 
+        actionId as 'improve-text' | 'make-romantic' | 'make-formal' | 'make-casual' | 'shorten' | 'lengthen' | 'fix-grammar' | 'add-emoji' | 'generate-text', 
         context
       )
       
@@ -216,10 +216,10 @@ export function AIInlineAssistant({
           <p className="text-xs text-gray-700 line-clamp-3 leading-relaxed break-words">{text}</p>
         </div>
       ) : (
-        <div className="px-4 pt-3 pb-2 bg-yellow-50/50 border-b border-yellow-200">
+        <div className="px-4 pt-3 pb-2 bg-blue-50/50 border-b border-blue-200">
           <div className="flex items-center gap-2">
-            <AlertCircle size={14} className="text-yellow-600" />
-            <span className="text-xs text-yellow-700">Please enter some text to enhance</span>
+            <Sparkles size={14} className="text-blue-600" />
+            <span className="text-xs text-blue-700 font-medium">✨ Use "Generate" to create text from scratch, or type something first to enhance it</span>
           </div>
         </div>
       )}
@@ -233,7 +233,8 @@ export function AIInlineAssistant({
           {quickActions.map((action) => {
             const Icon = action.icon
             const isActive = activeAction === action.id
-            const isDisabled = isLoading || !text || text.trim().length === 0
+            // Generate doesn't require text, others do
+            const isDisabled = isLoading || (action.id !== 'generate-text' && (!text || text.trim().length === 0))
             return (
               <button
                 key={action.id}

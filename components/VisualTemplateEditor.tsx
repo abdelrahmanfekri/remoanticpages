@@ -315,9 +315,12 @@ export function VisualTemplateEditor({
                           {/* Render Component with Inline Editing */}
                           {viewMode === 'edit' && editingComponent === componentId ? (
                             <InlineComponentEditor
+                              key={`editor-${componentId}`}
                               component={component}
-                              data={pageData[componentId] as Record<string, unknown> || {}}
-                              onUpdate={(data) => updateComponentData(componentId, data)}
+                              data={{ ...(pageData[componentId] as Record<string, unknown> || {}) }}
+                              onUpdate={(data) => {
+                                updateComponentData(componentId, data)
+                              }}
                               onAIEnhance={openAIEnhancement}
                               theme={customTheme}
                               memories={memories}
@@ -328,8 +331,9 @@ export function VisualTemplateEditor({
                             />
                           ) : (
                             <ComponentPreview
+                              key={`preview-${componentId}`}
                               component={component}
-                              data={pageData[componentId] as Record<string, unknown> || {}}
+                              data={{ ...(pageData[componentId] as Record<string, unknown> || {}) }}
                               theme={customTheme}
                               media={media}
                               memories={memories}
