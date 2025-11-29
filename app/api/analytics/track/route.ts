@@ -48,8 +48,8 @@ export async function POST(request: NextRequest) {
         .from('pages')
         .select('share_count')
         .eq('id', pageId)
-        .single()
-      
+      .single()
+
       if (currentPage) {
         await supabase
           .from('pages')
