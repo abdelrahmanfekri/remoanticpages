@@ -35,7 +35,7 @@ export default async function ChooseTemplatePage() {
   const userTier = await getUserTier(user.id)
 
   // Get templates from lib instead of database
-  const templates = Object.entries(TEMPLATE_SCHEMAS).map(([templateId, schema]) => ({
+  let templates = Object.entries(TEMPLATE_SCHEMAS).map(([templateId, schema]) => ({
     id: templateId,
     name: schema.templateName,
     description: `${schema.category} template with ${schema.components.length} sections`,
@@ -45,6 +45,24 @@ export default async function ChooseTemplatePage() {
     is_featured: FEATURED_TEMPLATES.includes(templateId as TemplateName),
     preview_image_url: null,
   }))
+
+  // Sort: free templates first, then by tier (free < premium < pro), then featured, then by name
+  const tierOrder: Tier[] = ['free', 'premium', 'pro']
+  templates.sort((a, b) => {
+    // First, sort by tier (free first)
+    const aTierIndex = tierOrder.indexOf(a.required_tier)
+    const bTierIndex = tierOrder.indexOf(b.required_tier)
+    if (aTierIndex !== bTierIndex) {
+      return aTierIndex - bTierIndex
+    }
+    
+    // Within same tier, featured first
+    if (a.is_featured && !b.is_featured) return -1
+    if (!a.is_featured && b.is_featured) return 1
+    
+    // Then by name
+    return a.name.localeCompare(b.name)
+  })
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-6 sm:py-12 px-4">

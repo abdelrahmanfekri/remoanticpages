@@ -60,10 +60,21 @@ export default async function TemplatesPage({
     })
   }
 
-  // Sort: featured first, then by name
+  // Sort: free templates first, then by tier (free < premium < pro), then featured, then by name
+  const tierOrder: Tier[] = ['free', 'premium', 'pro']
   templates.sort((a, b) => {
+    // First, sort by tier (free first)
+    const aTierIndex = tierOrder.indexOf(a.required_tier)
+    const bTierIndex = tierOrder.indexOf(b.required_tier)
+    if (aTierIndex !== bTierIndex) {
+      return aTierIndex - bTierIndex
+    }
+    
+    // Within same tier, featured first
     if (a.is_featured && !b.is_featured) return -1
     if (!a.is_featured && b.is_featured) return 1
+    
+    // Then by name
     return a.name.localeCompare(b.name)
   })
 
