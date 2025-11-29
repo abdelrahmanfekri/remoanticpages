@@ -1,14 +1,11 @@
 import { Check, X, Sparkles, Heart } from 'lucide-react'
 import Link from 'next/link'
 import CheckoutButton from '@/components/CheckoutButton'
+import { getTierPricing, type Tier } from '@/lib/tiers'
 
-const tiers = [
+const tierConfigs = [
   {
-    name: 'Free',
-    key: 'free',
-    price: 0,
-    priceLabel: 'Forever Free',
-    description: 'Perfect for trying out',
+    key: 'free' as Tier,
     features: [
       '1 page forever',
       'Basic templates',
@@ -26,11 +23,7 @@ const tiers = [
     hasCheckout: false,
   },
   {
-    name: 'Premium',
-    key: 'premium',
-    price: 4.99,
-    priceLabel: 'per month',
-    description: 'Best value for creators',
+    key: 'premium' as Tier,
     features: [
       '✨ Unlimited pages',
       'All premium templates',
@@ -51,11 +44,7 @@ const tiers = [
     hasCheckout: true,
   },
   {
-    name: 'Pro',
-    key: 'pro',
-    price: 9.99,
-    priceLabel: 'per month',
-    description: 'Everything unlocked',
+    key: 'pro' as Tier,
     features: [
       '🚀 Everything in Premium',
       'Unlimited languages per page',
@@ -77,6 +66,18 @@ const tiers = [
     hasCheckout: true,
   },
 ]
+
+// Combine pricing from centralized config with tier features
+const tiers = tierConfigs.map(config => {
+  const pricing = getTierPricing(config.key)
+  return {
+    ...config,
+    name: pricing.name,
+    price: pricing.price,
+    priceLabel: pricing.priceLabel,
+    description: pricing.description,
+  }
+})
 
 export default function PricingPage() {
   return (
@@ -182,7 +183,7 @@ export default function PricingPage() {
               <div className="text-4xl mb-3">💰</div>
               <h3 className="font-semibold text-gray-900 mb-2">Affordable Pricing</h3>
               <p className="text-sm text-gray-600">
-                Low monthly fees starting at just $4.99. No hidden costs or surprises.
+                Low monthly fees starting at just ${getTierPricing('premium').price}. No hidden costs or surprises.
               </p>
             </div>
             <div className="text-center">
