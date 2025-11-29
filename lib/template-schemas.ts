@@ -971,6 +971,27 @@ export function getTemplateSchema(templateName: TemplateName): TemplateSchema | 
   return TEMPLATE_SCHEMAS[templateName] || null
 }
 
+export function getTemplateIdByDisplayName(displayName: string): TemplateName | 'custom' | null {
+  // Handle custom pages
+  if (displayName === 'Custom' || displayName === 'custom') {
+    return 'custom'
+  }
+  
+  // Search by display name
+  for (const [templateId, schema] of Object.entries(TEMPLATE_SCHEMAS)) {
+    if (schema.templateName === displayName) {
+      return templateId as TemplateName
+    }
+  }
+  
+  // Also check if it's already a template ID
+  if (displayName in TEMPLATE_SCHEMAS) {
+    return displayName as TemplateName
+  }
+  
+  return null
+}
+
 export function getComponent(
   templateName: TemplateName,
   componentId: string

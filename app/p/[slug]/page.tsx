@@ -10,13 +10,14 @@ import type { PageWithRelations } from '@/types'
 export default async function PublicPageViewer({
   params,
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
+  const { slug } = await params
   const supabase = await createClient()
   const { data: page, error } = await supabase
     .from('pages')
     .select('*, memories(*), media(*)')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single()
 
   if (error || !page) {

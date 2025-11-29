@@ -31,8 +31,10 @@ const FEATURED_TEMPLATES: TemplateName[] = ['RomanticBirthday', 'ModernAnniversa
 export default async function TemplatesPage({
   searchParams,
 }: {
-  searchParams: { category?: string; tier?: string }
+  searchParams: Promise<{ category?: string; tier?: string }>
 }) {
+  const resolvedSearchParams = await searchParams
+  
   // Get all templates from schemas
   let templates = Object.entries(TEMPLATE_SCHEMAS).map(([templateId, schema]) => ({
     id: templateId,
@@ -46,14 +48,14 @@ export default async function TemplatesPage({
   }))
 
   // Filter by category
-  if (searchParams.category && searchParams.category !== 'all') {
-    templates = templates.filter((t) => t.category === searchParams.category)
+  if (resolvedSearchParams.category && resolvedSearchParams.category !== 'all') {
+    templates = templates.filter((t) => t.category === resolvedSearchParams.category)
   }
 
   // Filter by tier
-  if (searchParams.tier) {
+  if (resolvedSearchParams.tier) {
     const tierOrder: Tier[] = ['free', 'premium', 'pro']
-    const requestedTierIndex = tierOrder.indexOf(searchParams.tier as Tier)
+    const requestedTierIndex = tierOrder.indexOf(resolvedSearchParams.tier as Tier)
     templates = templates.filter((t) => {
       const templateTierIndex = tierOrder.indexOf(t.required_tier)
       return templateTierIndex <= requestedTierIndex
@@ -78,7 +80,7 @@ export default async function TemplatesPage({
     return a.name.localeCompare(b.name)
   })
 
-  const selectedCategory = searchParams.category || 'all'
+  const selectedCategory = resolvedSearchParams.category || 'all'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-6 sm:py-12 px-4">

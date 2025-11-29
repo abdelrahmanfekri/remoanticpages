@@ -67,6 +67,7 @@ function createDemoPageFromSchema(schema: ReturnType<typeof getTemplateSchema>):
     share_count: 0,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    config: null,
     memories: [],
     media: [],
     analytics: [],
@@ -76,10 +77,11 @@ function createDemoPageFromSchema(schema: ReturnType<typeof getTemplateSchema>):
 export default async function TemplatePreviewPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   // Get template from schemas
-  const templateId = params.id as TemplateName
+  const templateId = id as TemplateName
   const schema = getTemplateSchema(templateId)
 
   if (!schema) {
