@@ -12,6 +12,8 @@ interface AIInlineAssistantProps {
   position: { x: number; y: number }
   recipientName?: string
   occasion?: string
+  componentType?: string
+  fieldType?: 'title' | 'message' | 'text'
 }
 
 export function AIInlineAssistant({
@@ -21,6 +23,8 @@ export function AIInlineAssistant({
   position,
   recipientName,
   occasion,
+  componentType,
+  fieldType = 'text',
 }: AIInlineAssistantProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -49,10 +53,26 @@ export function AIInlineAssistant({
     setError(null)
     setPreviewText(null)
     try {
+      // Build context with component and field type information
+      const context: any = { recipientName, occasion }
+      
+      // Add field type guidance for AI
+      if (fieldType === 'title') {
+        context.fieldType = 'title'
+        context.guidance = 'Keep it short and concise, typically 2-8 words. This is a title or heading.'
+      } else if (fieldType === 'message') {
+        context.fieldType = 'message'
+        context.guidance = 'This is a longer message or paragraph. Aim for 2-4 sentences with emotional depth.'
+      }
+      
+      if (componentType) {
+        context.componentType = componentType
+      }
+
       const enhanced = await enhanceWithAI(
         text.trim(), 
         actionId as 'improve-text' | 'make-romantic' | 'make-formal' | 'make-casual' | 'shorten' | 'lengthen' | 'fix-grammar' | 'add-emoji', 
-        { recipientName, occasion }
+        context
       )
       
       if (!enhanced || enhanced.trim().length === 0) {

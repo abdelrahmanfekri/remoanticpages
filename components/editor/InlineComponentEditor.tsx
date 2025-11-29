@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { X, Sparkles, Plus, Trash2 } from 'lucide-react'
 import type { TemplateComponent } from '@/lib/template-schemas'
 
@@ -15,7 +16,7 @@ interface InlineComponentEditorProps {
   component: TemplateComponent
   data: Record<string, unknown>
   onUpdate: (data: Record<string, unknown>) => void
-  onAIEnhance: (field: string, event: React.MouseEvent) => void
+  onAIEnhance: (field: string, componentType: string, fieldType: 'title' | 'message' | 'text', event: React.MouseEvent) => void
   theme: { primaryColor: string; secondaryColor: string; fontFamily: string }
   memories: Memory[]
   onAddMemory: () => void
@@ -36,7 +37,13 @@ export function InlineComponentEditor({
   onDeleteMemory,
   onClose,
 }: InlineComponentEditorProps) {
-  const renderField = (field: string, label: string, type: 'text' | 'textarea' = 'text', placeholder?: string) => {
+  const renderField = (
+    field: string,
+    label: string,
+    type: 'text' | 'textarea' = 'text',
+    placeholder?: string,
+    fieldType: 'title' | 'message' | 'text' = 'text'
+  ) => {
     const value = (data?.[field] as string) || ''
     
     return (
@@ -61,9 +68,9 @@ export function InlineComponentEditor({
         <button
           onClick={(e) => {
             e.stopPropagation()
-            onAIEnhance(field, e)
+            onAIEnhance(field, component.type, fieldType, e)
           }}
-          className="absolute -right-3 top-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-all z-10"
+          className="absolute -right-3 top-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-2 rounded-full shadow-lg hover:scale-110 transition-all z-10 touch-manipulation"
           title="Enhance with AI"
         >
           <Sparkles size={16} />
@@ -90,26 +97,26 @@ export function InlineComponentEditor({
       <div className="space-y-4 bg-white p-4 rounded-lg">
         {component.type === 'hero' && (
           <>
-            {renderField('title', 'Main Title', 'text', 'e.g., Happy Birthday!')}
-            {renderField('subtitle', 'Subtitle', 'text', 'e.g., My Dearest Friend')}
+            {renderField('title', 'Main Title', 'text', 'e.g., Happy Birthday!', 'title')}
+            {renderField('subtitle', 'Subtitle', 'text', 'e.g., My Dearest Friend', 'title')}
           </>
         )}
 
         {(component.type === 'intro' || component.type === 'text-block') && (
-          <>{renderField('text', 'Text Content', 'textarea', 'Write your heartfelt message...')}</>
+          <>{renderField('text', 'Text Content', 'textarea', 'Write your heartfelt message...', 'message')}</>
         )}
 
         {component.type === 'final-message' && (
           <>
-            {renderField('message', 'Final Message', 'textarea', 'Your closing words...')}
-            {renderField('signature', 'Signature', 'text', 'e.g., Forever Yours')}
+            {renderField('message', 'Final Message', 'textarea', 'Your closing words...', 'message')}
+            {renderField('signature', 'Signature', 'text', 'e.g., Forever Yours', 'title')}
           </>
         )}
 
         {component.type === 'quote' && (
           <>
-            {renderField('text', 'Quote', 'textarea', 'A meaningful quote...')}
-            {renderField('author', 'Author', 'text', 'Quote author (optional)')}
+            {renderField('text', 'Quote', 'textarea', 'A meaningful quote...', 'message')}
+            {renderField('author', 'Author', 'text', 'Quote author (optional)', 'title')}
           </>
         )}
 
@@ -144,7 +151,7 @@ export function InlineComponentEditor({
                       value={memory.title}
                       onChange={(e) => onUpdateMemory(index, { title: e.target.value })}
                       placeholder="Title..."
-                      className="w-full p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none"
+                      className="w-full p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none touch-manipulation"
                     />
                     <input
                       type="text"
@@ -157,7 +164,7 @@ export function InlineComponentEditor({
                       value={memory.description}
                       onChange={(e) => onUpdateMemory(index, { description: e.target.value })}
                       placeholder="Description..."
-                      className="w-full min-h-[60px] p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none resize-none"
+                      className="w-full min-h-[60px] p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none resize-none touch-manipulation"
                     />
                   </div>
                 </div>
@@ -168,7 +175,7 @@ export function InlineComponentEditor({
 
         {component.type === 'countdown' && (
           <>
-            {renderField('title', 'Countdown Title', 'text')}
+            {renderField('title', 'Countdown Title', 'text', undefined, 'title')}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Target Date</label>
               <input

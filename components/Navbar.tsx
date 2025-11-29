@@ -131,7 +131,7 @@ export function Navbar({ user, userTier = 'free' }: NavbarProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-rose-50 transition-colors"
+            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-rose-50 active:bg-rose-100 transition-colors touch-manipulation"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -151,10 +151,10 @@ export function Navbar({ user, userTier = 'free' }: NavbarProps) {
                       key={link.href}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all touch-manipulation active:scale-95 ${
                         isActive(link.href)
                           ? 'bg-gradient-to-r from-rose-50 to-pink-50 text-rose-600 font-semibold'
-                          : 'text-gray-700 hover:bg-rose-50'
+                          : 'text-gray-700 hover:bg-rose-50 active:bg-rose-100'
                       }`}
                     >
                       <Icon size={20} />

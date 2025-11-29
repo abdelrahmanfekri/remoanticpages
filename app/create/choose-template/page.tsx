@@ -47,35 +47,35 @@ export default async function ChooseTemplatePage() {
   }))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-6 sm:py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12 animate-fade-up">
-          <h1 className="text-5xl md:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500 mb-4">
+        <div className="text-center mb-8 sm:mb-12 animate-fade-up">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500 mb-3 sm:mb-4 px-2">
             Choose Your Template
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-2">
             Select a template to start creating your heartful page
           </p>
         </div>
 
         {/* Create Your Own Option */}
-        <div className="mb-12">
+        <div className="mb-8 sm:mb-12">
           <Link
             href="/create/custom"
-            className="group glass-card p-8 hover:scale-105 transition-all duration-300 hover:shadow-xl animate-soft-rise flex items-center gap-6"
+            className="group glass-card p-4 sm:p-6 lg:p-8 hover:scale-105 active:scale-100 sm:active:scale-105 transition-all duration-300 hover:shadow-xl animate-soft-rise flex flex-col sm:flex-row items-center gap-4 sm:gap-6 touch-manipulation"
           >
-            <div className="p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl">
-              <Wand2 className="text-purple-600 group-hover:text-purple-700 transition-colors" size={48} />
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl">
+              <Wand2 className="text-purple-600 group-hover:text-purple-700 transition-colors w-10 h-10 sm:w-12 sm:h-12" />
             </div>
-            <div className="flex-1">
-              <h3 className="text-2xl font-serif text-rose-600 group-hover:text-rose-700 mb-2">
+            <div className="flex-1 text-center sm:text-left">
+              <h3 className="text-xl sm:text-2xl font-serif text-rose-600 group-hover:text-rose-700 mb-2">
                 Create Your Own
               </h3>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600">
                 Start from scratch with a blank canvas and build your perfect page
               </p>
             </div>
-            <div className="text-rose-600 font-medium group-hover:text-rose-700">
+            <div className="text-rose-600 font-medium group-hover:text-rose-700 text-sm sm:text-base">
               Start Creating →
             </div>
           </Link>
@@ -83,7 +83,7 @@ export default async function ChooseTemplatePage() {
 
         {/* Templates Grid */}
         {templates && templates.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {templates.map((template) => {
               const canUse = canUseFeature('premium_templates', userTier) || template.required_tier === 'free'
               
@@ -91,7 +91,7 @@ export default async function ChooseTemplatePage() {
                 <Link
                   key={template.id}
                   href={canUse ? `/create/${template.id}` : `/pricing?tier=${template.required_tier}`}
-                  className="group glass-card p-6 hover:scale-105 transition-all duration-300 hover:shadow-xl animate-soft-rise relative"
+                  className="group glass-card p-4 sm:p-6 hover:scale-105 active:scale-100 sm:active:scale-105 transition-all duration-300 hover:shadow-xl animate-soft-rise relative touch-manipulation"
                 >
                   {!canUse && (
                     <div className="absolute top-4 right-4 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10">

@@ -1,19 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { VisualTemplateEditor } from '@/components/VisualTemplateEditor'
 import { getTemplateSchema, type TemplateName } from '@/lib/template-schemas'
 import type { Tier } from '@/lib/tiers'
-import { createPage } from '@/lib/actions/pages'
+import { createPage, updatePage, getPageById } from '@/lib/actions/pages'
 import { getCurrentSubscription } from '@/lib/actions/subscriptions'
 
 export default function CreatePageEditor({ params }: { params: Promise<{ templateId: string }> }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const editPageId = searchParams.get('edit')
   const [userTier, setUserTier] = useState<Tier>('free')
   const [loading, setLoading] = useState(true)
   const [templateId, setTemplateId] = useState<string>('')
   const [resolvedParams, setResolvedParams] = useState<{ templateId: string } | null>(null)
+  const [initialData, setInitialData] = useState<Record<string, unknown> | undefined>(undefined)
+  const [pageId, setPageId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     // Resolve params promise
@@ -26,18 +30,72 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
         const subscriptionData = await getCurrentSubscription()
         setUserTier(subscriptionData.tier || 'free')
 
-        // Validate template exists or handle custom
-        if (resolved.templateId === 'custom') {
-          // Custom page - use default config template (RomanticBirthday as base)
-          setTemplateId('RomanticBirthday')
-        } else {
-          const schema = getTemplateSchema(resolved.templateId as TemplateName)
-          if (!schema) {
-            console.error('Template not found:', resolved.templateId)
-            router.push('/create/choose-template')
+        // If editing, load existing page data
+        if (editPageId) {
+          const { page, error } = await getPageById(editPageId)
+          if (error || !page) {
+            console.error('Failed to load page:', error)
+            router.push('/dashboard')
             return
           }
-          setTemplateId(resolved.templateId)
+
+          setPageId(page.id)
+          
+          // Extract template ID from page
+          const pageTemplateId = (page as any).template_id || page.template_name
+          if (pageTemplateId) {
+            const schema = getTemplateSchema(pageTemplateId as TemplateName)
+            if (schema) {
+              setTemplateId(pageTemplateId)
+            } else if (resolved.templateId !== 'custom') {
+              setTemplateId(resolved.templateId)
+            } else {
+              setTemplateId('RomanticBirthday')
+            }
+          } else {
+            setTemplateId(resolved.templateId === 'custom' ? 'RomanticBirthday' : resolved.templateId)
+          }
+
+          // Convert page data to editor format
+          const config = page.config as Record<string, unknown> | null
+          const content: Record<string, unknown> = {}
+          
+          // Extract component data from page
+          if (config?.components) {
+            const components = config.components as Array<{ id: string; type: string }>
+            components.forEach((comp) => {
+              if (comp.id === 'hero') {
+                content.hero = {
+                  title: page.title || '',
+                  subtitle: page.recipient_name || '',
+                }
+              } else if (comp.id === 'intro') {
+                content.intro = {
+                  text: page.intro_text || '',
+                }
+              } else if (comp.id === 'final') {
+                content.final = {
+                  message: page.final_message || '',
+                }
+              }
+            })
+          }
+
+          setInitialData(content)
+        } else {
+          // New page - validate template exists or handle custom
+          if (resolved.templateId === 'custom') {
+            // Custom page - use default config template (RomanticBirthday as base)
+            setTemplateId('RomanticBirthday')
+          } else {
+            const schema = getTemplateSchema(resolved.templateId as TemplateName)
+            if (!schema) {
+              console.error('Template not found:', resolved.templateId)
+              router.push('/create/choose-template')
+              return
+            }
+            setTemplateId(resolved.templateId)
+          }
         }
       } catch (error) {
         console.error('Failed to fetch data:', error)
@@ -47,7 +105,7 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
     }
 
     resolveParams()
-  }, [params, router])
+  }, [params, router, editPageId])
 
   const handleSave = async (data: Record<string, unknown>) => {
     try {
@@ -132,6 +190,30 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
       const introText = (introData.text as string) || ''
       const finalMessage = (finalData.message as string) || ''
 
+      // If editing, update existing page
+      if (editPageId && pageId) {
+        const result = await updatePage(pageId, {
+          title,
+          recipient_name: recipientName,
+          hero_text: heroText,
+          intro_text: introText,
+          final_message: finalMessage,
+          background_music_url: (musicUrl as string) || null,
+          has_music: !!musicUrl,
+          media_count: formattedMedia.length,
+          config: pageConfig,
+        })
+
+        if (result.error) {
+          throw new Error(result.error)
+        }
+
+        // Update memories and media (simplified - in production you'd want to sync properly)
+        router.push('/dashboard')
+        return
+      }
+
+      // Create new page
       const result = await createPage({
         title,
         recipientName,
@@ -160,7 +242,7 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
       router.push(`/p/${result.page.slug}`)
     } catch (error) {
       console.error('Save failed:', error)
-      alert(error instanceof Error ? error.message : 'Failed to create page')
+      alert(error instanceof Error ? error.message : 'Failed to save page')
     }
   }
 
@@ -182,9 +264,11 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
   return (
     <VisualTemplateEditor
       templateId={templateId}
+      initialData={initialData}
       onSave={handleSave}
       onCancel={handleCancel}
-                  userTier={userTier}
+      userTier={userTier}
+      pageId={pageId}
     />
   )
 }

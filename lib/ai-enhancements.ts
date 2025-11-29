@@ -121,6 +121,9 @@ export async function enhanceWithAI(
     recipientName?: string
     occasion?: string
     tone?: string
+    componentType?: string
+    fieldType?: 'title' | 'message' | 'text'
+    guidance?: string
   }
 ): Promise<string> {
   try {

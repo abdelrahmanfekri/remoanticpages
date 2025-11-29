@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { ensureFreeSubscription } from '@/lib/subscription'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -37,11 +36,7 @@ export async function GET(request: Request) {
     
     if (user) {
       // User authenticated! Supabase handled OAuth code exchange automatically
-      try {
-        await ensureFreeSubscription(user.id)
-      } catch (subError) {
-        console.error('Subscription setup error:', subError)
-      }
+      // Free tier is the default, no subscription record needed
       
       const redirectUrl = redirect.startsWith('/') ? `${origin}${redirect}` : redirect
       return NextResponse.redirect(redirectUrl)
@@ -49,27 +44,26 @@ export async function GET(request: Request) {
     
     // If no user, try email confirmation token
     if (token && type) {
-      const { data: { user: verifiedUser }, error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: type as 'email' | 'sms' | 'phone_change' | 'email_change',
-      })
-      
-      if (verifyError) {
-        console.error('Token verification error:', verifyError)
-        const url = new URL(`${origin}/login`)
-        url.searchParams.set('error', 'verification_failed')
-        return NextResponse.redirect(url)
-      }
-      
-      if (verifiedUser) {
-        try {
-          await ensureFreeSubscription(verifiedUser.id)
-        } catch (subError) {
-          console.error('Subscription setup error:', subError)
+      // Only handle email verification types
+      if (type === 'email' || type === 'signup' || type === 'email_change') {
+        const { data: { user: verifiedUser }, error: verifyError } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: type as 'email' | 'signup' | 'email_change',
+        })
+        
+        if (verifyError) {
+          console.error('Token verification error:', verifyError)
+          const url = new URL(`${origin}/login`)
+          url.searchParams.set('error', 'verification_failed')
+          return NextResponse.redirect(url)
         }
         
-        const redirectUrl = redirect.startsWith('/') ? `${origin}${redirect}` : redirect
-        return NextResponse.redirect(redirectUrl)
+        if (verifiedUser) {
+          // Free tier is the default, no subscription record needed
+          
+          const redirectUrl = redirect.startsWith('/') ? `${origin}${redirect}` : redirect
+          return NextResponse.redirect(redirectUrl)
+        }
       }
     }
     

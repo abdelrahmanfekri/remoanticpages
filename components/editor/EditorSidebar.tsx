@@ -1,6 +1,6 @@
 'use client'
 
-import { Settings, ImageIcon, Palette, Wand2, ChevronRight, Check } from 'lucide-react'
+import { Settings, ImageIcon, Palette, Wand2, ChevronRight, Check, Music } from 'lucide-react'
 import { MediaUploader, type MediaItem } from '@/components/MediaUploader'
 import { MusicUploader } from '@/components/MusicUploader'
 import type { TemplateComponent } from '@/lib/template-schemas'
@@ -11,6 +11,7 @@ interface EditorSidebarProps {
   activeComponents: string[]
   showComponentsPanel: boolean
   showMediaPanel: boolean
+  showMusicPanel: boolean
   showStylePanel: boolean
   editingComponent: string | null
   customTheme: { primaryColor: string; secondaryColor: string; fontFamily: string }
@@ -25,6 +26,7 @@ interface EditorSidebarProps {
   pageId?: string
   onToggleComponentsPanel: () => void
   onToggleMediaPanel: () => void
+  onToggleMusicPanel: () => void
   onToggleStylePanel: () => void
   onToggleComponent: (componentId: string) => void
   onEditComponent: (componentId: string) => void
@@ -39,6 +41,7 @@ export function EditorSidebar({
   activeComponents,
   showComponentsPanel,
   showMediaPanel,
+  showMusicPanel,
   showStylePanel,
   editingComponent,
   customTheme,
@@ -49,6 +52,7 @@ export function EditorSidebar({
   pageId,
   onToggleComponentsPanel,
   onToggleMediaPanel,
+  onToggleMusicPanel,
   onToggleStylePanel,
   onToggleComponent,
   onEditComponent,
@@ -85,8 +89,20 @@ export function EditorSidebar({
             >
               <ImageIcon size={18} className="text-blue-600" />
               <div className="flex-1">
-                <div className="text-sm font-semibold text-gray-900">Media</div>
-                <div className="text-xs text-gray-600">Photos & music</div>
+                <div className="text-sm font-semibold text-gray-900">Photos & Videos</div>
+                <div className="text-xs text-gray-600">Upload images</div>
+              </div>
+              <ChevronRight size={16} className="text-gray-400" />
+            </button>
+
+            <button
+              onClick={onToggleMusicPanel}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg hover:shadow-md transition-all text-left"
+            >
+              <Music size={18} className="text-purple-600" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-gray-900">Background Music</div>
+                <div className="text-xs text-gray-600">Add music</div>
               </div>
               <ChevronRight size={16} className="text-gray-400" />
             </button>
@@ -145,7 +161,7 @@ export function EditorSidebar({
         {/* Media Panel */}
         {showMediaPanel && (
           <div className="border-t pt-4">
-            <h3 className="text-sm font-bold text-gray-900 mb-3">Media Library</h3>
+            <h3 className="text-sm font-bold text-gray-900 mb-3">Photos & Videos</h3>
             <div className="space-y-4">
               <MediaUploader
                 pageId={pageId}
@@ -156,6 +172,15 @@ export function EditorSidebar({
                 maxVideos={tierLimits.maxVideosPerPage}
                 onUpgradeRequired={onUpgradeRequired}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Music Panel */}
+        {showMusicPanel && (
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">Background Music</h3>
+            <div className="space-y-4">
               <MusicUploader
                 pageId={pageId}
                 musicUrl={musicUrl}

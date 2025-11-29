@@ -34,6 +34,9 @@ export interface EnhanceTextParams {
     recipientName?: string
     occasion?: string
     tone?: string
+    componentType?: string
+    fieldType?: 'title' | 'message' | 'text'
+    guidance?: string
   }
 }
 
@@ -57,9 +60,25 @@ export async function enhanceText(params: EnhanceTextParams): Promise<EnhanceTex
 
     let prompt = ''
 
+    // Build context-aware prompt prefix
+    let contextPrefix = ''
+    if (context?.fieldType === 'title') {
+      contextPrefix = 'IMPORTANT: This is a TITLE or HEADING. Keep it SHORT (2-8 words maximum). Be concise and impactful.\n\n'
+    } else if (context?.fieldType === 'message') {
+      contextPrefix = 'IMPORTANT: This is a MESSAGE or PARAGRAPH. Aim for 2-4 sentences with emotional depth and detail.\n\n'
+    }
+    
+    if (context?.componentType) {
+      contextPrefix += `Component type: ${context.componentType}\n\n`
+    }
+    
+    if (context?.guidance) {
+      contextPrefix += `${context.guidance}\n\n`
+    }
+
     switch (enhancement) {
       case 'improve-text':
-        prompt = `Improve this text to be more engaging, beautiful, and heartfelt. Keep the same meaning but make it more emotionally resonant:
+        prompt = `${contextPrefix}Improve this text to be more engaging, beautiful, and heartfelt. Keep the same meaning but make it more emotionally resonant:
 
 "${text}"
 
@@ -67,7 +86,7 @@ Return only the improved version, nothing else.`
         break
 
       case 'make-romantic':
-        prompt = `Make this text more romantic and loving. Add warmth and affection while keeping the core message:
+        prompt = `${contextPrefix}Make this text more romantic and loving. Add warmth and affection while keeping the core message:
 
 "${text}"
 
@@ -75,7 +94,7 @@ Return only the romantic version, nothing else.`
         break
 
       case 'make-formal':
-        prompt = `Rewrite this text in a more formal and professional tone while maintaining respect and warmth:
+        prompt = `${contextPrefix}Rewrite this text in a more formal and professional tone while maintaining respect and warmth:
 
 "${text}"
 
@@ -83,7 +102,7 @@ Return only the formal version, nothing else.`
         break
 
       case 'make-casual':
-        prompt = `Rewrite this text in a casual, friendly, and relaxed tone:
+        prompt = `${contextPrefix}Rewrite this text in a casual, friendly, and relaxed tone:
 
 "${text}"
 
@@ -91,7 +110,7 @@ Return only the casual version, nothing else.`
         break
 
       case 'shorten':
-        prompt = `Make this text shorter and more concise while keeping the main message:
+        prompt = `${contextPrefix}Make this text shorter and more concise while keeping the main message:
 
 "${text}"
 
@@ -99,7 +118,7 @@ Return only the shortened version, nothing else.`
         break
 
       case 'lengthen':
-        prompt = `Expand this text with more details, descriptions, and emotional depth:
+        prompt = `${contextPrefix}Expand this text with more details, descriptions, and emotional depth:
 
 "${text}"
 
@@ -107,7 +126,7 @@ Return only the lengthened version, nothing else.`
         break
 
       case 'fix-grammar':
-        prompt = `Fix any spelling, grammar, and punctuation errors in this text. Keep the same style and tone:
+        prompt = `${contextPrefix}Fix any spelling, grammar, and punctuation errors in this text. Keep the same style and tone:
 
 "${text}"
 
@@ -115,7 +134,7 @@ Return only the corrected version, nothing else.`
         break
 
       case 'add-emoji':
-        prompt = `Add appropriate emojis to this text to make it more fun and expressive. Don't overdo it:
+        prompt = `${contextPrefix}Add appropriate emojis to this text to make it more fun and expressive. Don't overdo it:
 
 "${text}"
 

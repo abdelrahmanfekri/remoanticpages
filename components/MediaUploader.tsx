@@ -168,7 +168,7 @@ export function MediaUploader({
   return (
     <div className="space-y-4">
       {/* Upload Button */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
         <input
           ref={fileInputRef}
           type="file"
@@ -181,22 +181,22 @@ export function MediaUploader({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="flex items-center gap-2 bg-rose-100 text-rose-600 px-6 py-3 rounded-lg hover:bg-rose-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:from-rose-600 hover:to-pink-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation font-semibold shadow-md"
         >
           {uploading ? (
             <>
               <Loader2 size={20} className="animate-spin" />
-              Uploading...
+              <span>Uploading...</span>
             </>
           ) : (
             <>
               <Upload size={20} />
-              Choose Files
+              <span>Upload Photos/Videos</span>
             </>
           )}
         </button>
 
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 flex items-center justify-center sm:justify-start">
           {maxImages === Infinity ? (
             <span>Unlimited images</span>
           ) : (
@@ -204,7 +204,7 @@ export function MediaUploader({
           )}
           {maxVideos > 0 && (
             <>
-              {' • '}
+              <span className="mx-2">•</span>
               {maxVideos === Infinity ? (
                 <span>Unlimited videos</span>
               ) : (
@@ -230,7 +230,7 @@ export function MediaUploader({
 
       {/* Media Grid */}
       {media.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
           {media.map((item, index) => (
             <div
               key={index}
@@ -271,7 +271,8 @@ export function MediaUploader({
               <button
                 type="button"
                 onClick={() => handleDelete(index)}
-                className="absolute bottom-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                className="absolute bottom-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 group-active:opacity-100 sm:group-active:opacity-100 transition-opacity hover:bg-red-600 active:bg-red-700 touch-manipulation"
+                aria-label="Delete media"
               >
                 <Trash2 size={16} />
               </button>

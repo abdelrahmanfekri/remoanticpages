@@ -142,7 +142,7 @@ export function MusicUploader({
         <button
           type="button"
           onClick={() => onUpgradeRequired?.('Background Music', 'premium')}
-          className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-full hover:scale-105 transition-transform"
+          className="w-full sm:w-auto bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-full hover:scale-105 active:scale-95 transition-transform touch-manipulation font-semibold"
         >
           Upgrade to Add Music
         </button>
@@ -166,17 +166,17 @@ export function MusicUploader({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="flex items-center gap-2 bg-rose-100 text-rose-600 px-6 py-3 rounded-lg hover:bg-rose-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-lg hover:from-rose-600 hover:to-pink-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation font-semibold shadow-md"
           >
             {uploading ? (
               <>
                 <Loader2 size={20} className="animate-spin" />
-                Uploading...
+                <span>Uploading...</span>
               </>
             ) : (
               <>
                 <Upload size={20} />
-                Choose Audio File
+                <span>Upload Music</span>
               </>
             )}
           </button>

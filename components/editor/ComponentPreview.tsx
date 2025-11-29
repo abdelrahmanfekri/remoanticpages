@@ -33,6 +33,13 @@ interface ComponentPreviewProps {
   media: MediaItem[]
   memories: Memory[]
   musicUrl: string | null
+  viewMode?: 'edit' | 'preview'
+  editingField?: { componentId: string; field: string } | null
+  onInlineEdit?: (componentId: string, field: string) => void
+  onInlineSave?: (componentId: string, field: string, value: string) => void
+  onOpenMediaPanel?: () => void
+  onMediaChange?: (media: MediaItem[]) => void
+  pageId?: string
 }
 
 export function ComponentPreview({
@@ -42,6 +49,13 @@ export function ComponentPreview({
   media,
   memories,
   musicUrl,
+  viewMode = 'preview',
+  editingField,
+  onInlineEdit,
+  onInlineSave,
+  onOpenMediaPanel,
+  onMediaChange,
+  pageId,
 }: ComponentPreviewProps) {
   // Mock page object for template components - cast to any to avoid type issues with preview
   const mockPage: any = {
@@ -75,7 +89,21 @@ export function ComponentPreview({
     page: mockPage,
     theme: theme,
     settings: component.settings,
-    defaultContent: data,
+    defaultContent: {
+      ...data,
+      viewMode, // Pass viewMode so components know if they're in edit mode
+    },
+    viewMode,
+    editingField: editingField?.componentId === component.id ? editingField.field : null,
+    onInlineEdit: onInlineEdit ? (field: string) => onInlineEdit(component.id, field) : undefined,
+    onInlineSave: onInlineSave ? (field: string, value: string) => onInlineSave(component.id, field, value) : undefined,
+  }
+
+  // Add media panel handler for MediaGallery
+  if (component.type === 'photo-gallery') {
+    componentProps.onOpenMediaPanel = onOpenMediaPanel
+    componentProps.onMediaChange = onMediaChange
+    componentProps.pageId = pageId
   }
 
   // Render appropriate component

@@ -70,44 +70,44 @@ export default async function TemplatesPage({
   const selectedCategory = searchParams.category || 'all'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 py-6 sm:py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12 animate-fade-up">
-          <h1 className="text-5xl md:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500 mb-4">
+        <div className="text-center mb-8 sm:mb-12 animate-fade-up">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500 mb-3 sm:mb-4 px-2">
             Choose Your Template
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-2">
             Browse our collection of beautiful templates. No signup required to explore!
           </p>
         </div>
 
         {/* Category Filter */}
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="mb-6 sm:mb-8 flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-2">
           {categories.map((category) => (
             <Link
               key={category.id}
               href={`/templates?category=${category.id}`}
-              className={`px-6 py-3 rounded-full transition-all duration-200 ${
+              className={`px-4 sm:px-6 py-2 sm:py-3 rounded-full transition-all duration-200 text-sm sm:text-base touch-manipulation active:scale-95 ${
                 selectedCategory === category.id
                   ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-lg scale-105'
                   : 'bg-white text-gray-700 hover:bg-rose-50 border-2 border-rose-100'
               }`}
             >
-              <span className="mr-2">{category.emoji}</span>
-              {category.name}
+              <span className="mr-1 sm:mr-2">{category.emoji}</span>
+              <span className="whitespace-nowrap">{category.name}</span>
             </Link>
           ))}
         </div>
 
         {/* Templates Grid */}
         {templates && templates.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {templates.map((template) => (
               <Link
                 key={template.id}
                 href={`/templates/${template.id}/preview`}
-                className="group glass-card p-6 hover:scale-105 transition-all duration-300 hover:shadow-2xl animate-soft-rise"
+                className="group glass-card p-4 sm:p-6 hover:scale-105 active:scale-100 sm:active:scale-105 transition-all duration-300 hover:shadow-2xl animate-soft-rise touch-manipulation"
               >
                 {/* Preview Image Placeholder */}
                 <div className="aspect-video bg-gradient-to-br from-rose-100 to-pink-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
@@ -177,19 +177,19 @@ export default async function TemplatesPage({
         )}
 
         {/* CTA Section */}
-        <div className="mt-16 text-center">
-          <div className="glass-card soft-glow p-8 max-w-2xl mx-auto">
-            <h2 className="text-3xl font-serif text-rose-600 mb-4">
+        <div className="mt-12 sm:mt-16 text-center px-2">
+          <div className="glass-card soft-glow p-6 sm:p-8 max-w-2xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-serif text-rose-600 mb-3 sm:mb-4">
               Ready to Create Your Page?
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
               Choose a template above and start creating your beautiful heartful page in minutes.
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-8 py-4 rounded-full soft-glow hover:scale-105 transition-transform duration-200 font-semibold"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full soft-glow hover:scale-105 active:scale-95 transition-transform duration-200 font-semibold touch-manipulation text-sm sm:text-base"
             >
-              <Sparkles size={20} />
+              <Sparkles size={18} className="sm:w-5 sm:h-5" />
               Get Started Free
             </Link>
           </div>

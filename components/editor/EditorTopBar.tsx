@@ -36,7 +36,7 @@ export function EditorTopBar({
           <div className="flex items-center gap-3">
             <button
               onClick={onBack}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation active:bg-gray-200"
               title="Back"
             >
               <ArrowLeft size={20} />
@@ -54,7 +54,7 @@ export function EditorTopBar({
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => onViewModeChange('edit')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-sm font-medium ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-sm font-medium touch-manipulation active:scale-95 ${
                   viewMode === 'edit'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -65,7 +65,7 @@ export function EditorTopBar({
               </button>
               <button
                 onClick={() => onViewModeChange('preview')}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-sm font-medium ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md transition-all text-sm font-medium touch-manipulation active:scale-95 ${
                   viewMode === 'preview'
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -115,7 +115,7 @@ export function EditorTopBar({
             <button
               onClick={onSave}
               disabled={isSaving}
-              className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 transition-transform shadow-lg disabled:opacity-50 disabled:hover:scale-100"
+              className="flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 py-2 rounded-lg font-semibold hover:scale-105 active:scale-95 transition-transform shadow-lg disabled:opacity-50 disabled:hover:scale-100 touch-manipulation"
             >
               {isSaving ? (
                 <>

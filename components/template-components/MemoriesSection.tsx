@@ -45,7 +45,9 @@ export function MemoriesSection({
   } = settings
 
   const memories = page.memories || defaultContent.events || []
-  if (memories.length === 0) return null
+  // Show empty state in edit mode, hide in preview if empty
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (memories.length === 0 && !isEditMode) return null
 
   const getText = (field: string | Record<string, string> | null | undefined, lang: string = 'en') => {
     if (!field) return ''
@@ -73,7 +75,13 @@ export function MemoriesSection({
             </h2>
           )}
           <div className={`grid ${gridCols} gap-8`}>
-            {sortedMemories.map((memory, index) => (
+            {sortedMemories.length === 0 && isEditMode ? (
+              <div className="col-span-full text-center py-12 px-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                <p className="text-gray-500 mb-2">No memories yet</p>
+                <p className="text-sm text-gray-400">Add memories using the edit button above</p>
+              </div>
+            ) : (
+              sortedMemories.map((memory, index) => (
                 <div
                   key={memory.id}
                   className={`${backgroundColor} p-6 rounded-xl shadow-lg hover:shadow-2xl transition-all`}
@@ -92,7 +100,8 @@ export function MemoriesSection({
                     {getText(memory.description)}
                   </p>
                 </div>
-              ))}
+              ))
+            )}
           </div>
         </div>
       </section>
