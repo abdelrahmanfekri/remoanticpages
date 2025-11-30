@@ -39,7 +39,7 @@ export default async function DashboardPage() {
           </div>
           <div className="flex items-center gap-4 w-full sm:w-auto">
             <Link
-              href="/dashboard/create"
+              href="/create"
               className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-full soft-glow hover:scale-105 active:scale-95 transition-transform duration-200 touch-manipulation text-sm sm:text-base font-semibold"
             >
               <Plus size={18} className="sm:w-5 sm:h-5" />
@@ -160,7 +160,7 @@ export default async function DashboardPage() {
             <h2 className="text-2xl font-serif text-gray-700 mb-2">No pages yet</h2>
             <p className="text-gray-600 mb-6">Create your first heartful page to get started!</p>
             <Link
-              href="/dashboard/create"
+              href="/create"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-full soft-glow hover:scale-105 transition-transform duration-200"
             >
               <Plus size={20} />

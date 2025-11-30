@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { BlockEditor } from '@/components/editor/BlockEditor'
 import { getPageById, updatePage } from '@/lib/actions/pages'
-import { updateBlock } from '@/lib/actions/blocks'
+import { createBlock, updateBlock, deleteBlock } from '@/lib/actions/blocks'
 import { getCurrentSubscription } from '@/lib/actions/subscriptions'
 import type { Tier } from '@/lib/tiers'
 import type { PageWithRelations } from '@/types'
@@ -63,13 +63,30 @@ export default function EditPageFlow({ params }: { params: Promise<{ id: string 
         throw new Error(result.error)
       }
 
-      // Update blocks - simplified for now
-      // In production, you'd want proper sync (add/update/delete)
+      // Sync blocks properly
+      const existingBlockIds = new Set(pageData?.blocks.map(b => b.id) || [])
+      const incomingBlockIds = new Set(data.blocks.map((b: any) => b.id))
+
+      // 1. Delete removed blocks
+      for (const block of pageData?.blocks || []) {
+        if (!incomingBlockIds.has(block.id)) {
+          await deleteBlock(block.id)
+        }
+      }
+
+      // 2. Update or create blocks
       for (const block of data.blocks) {
         if (block.id.startsWith('block-')) {
-          // This is a new block, use createBlock action
-          // For now, skip as this is a simplified version
-        } else {
+          // New block - create it
+          await createBlock({
+            pageId: pageId,
+            type: block.type,
+            content: block.content,
+            settings: block.settings,
+            order: block.order,
+          })
+        } else if (existingBlockIds.has(block.id)) {
+          // Existing block - update it
           await updateBlock(block.id, {
             content: block.content,
             settings: block.settings,
