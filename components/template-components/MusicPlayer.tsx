@@ -43,7 +43,8 @@ export function MusicPlayer({ musicUrl, position = 'top-right', settings = {} }:
     playAudio()
   }, [musicUrl, autoplay, volume])
 
-  if (!musicUrl) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (!musicUrl && !isEditMode) return null
 
   const toggleMusic = () => {
     if (!audioRef.current) return

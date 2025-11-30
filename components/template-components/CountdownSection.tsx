@@ -73,7 +73,8 @@ export function CountdownSection({
     return () => clearInterval(interval)
   }, [target])
 
-  if (!target) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (!target && !isEditMode) return null
 
   if (variant === 'cards') {
     return (

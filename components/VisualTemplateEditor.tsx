@@ -5,6 +5,7 @@ import { Plus, Edit3, Trash2, X, Image as ImageIcon, Music } from 'lucide-react'
 import { getTemplateSchema, type TemplateName } from '@/lib/template-schemas'
 import { AIInlineAssistant } from '@/components/AIInlineAssistant'
 import { UpgradeModal } from '@/components/UpgradeModal'
+import { PrivacyModal } from '@/components/PrivacyModal'
 import { MediaUploader } from '@/components/MediaUploader'
 import { MusicUploader } from '@/components/MusicUploader'
 import type { Tier } from '@/lib/tiers'
@@ -26,6 +27,11 @@ interface VisualTemplateEditorProps {
   onCancel: () => void
   userTier?: Tier
   pageId?: string
+}
+
+interface SaveData extends Record<string, unknown> {
+  isPrivate?: boolean
+  password?: string
 }
 
 export function VisualTemplateEditor({
@@ -64,6 +70,8 @@ export function VisualTemplateEditor({
     shareUrl,
     upgradeModal,
     memories,
+    showPrivacyModal,
+    setShowPrivacyModal,
     // Actions
     setSetupStep,
     setViewMode,
@@ -123,10 +131,16 @@ export function VisualTemplateEditor({
     }
   }, [schema, initialData, initializeEditor])
 
-  const handleSave = async () => {
+  const handleSave = () => {
+    // Show privacy modal first
+    setShowPrivacyModal(true)
+  }
+
+  const handlePrivacyConfirm = async (isPrivate: boolean, password: string) => {
+    setShowPrivacyModal(false)
     setIsSaving(true)
     try {
-      const saveData = {
+      const saveData: SaveData = {
         templateId,
         components: schema?.components
           .filter((c) => activeComponents.includes(c.id))
@@ -141,6 +155,8 @@ export function VisualTemplateEditor({
         media,
         musicUrl,
         memories,
+        isPrivate,
+        password: isPrivate ? password : '',
       }
 
       await onSave(saveData)
@@ -168,6 +184,10 @@ export function VisualTemplateEditor({
   ) => {
     const componentId = editingComponent || activeComponents[0] || ''
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    
+    // Check if this is a memory field (format: memory-{index}-{fieldName})
+    const memoryMatch = field.match(/^memory-(\d+)-(title|description)$/)
+    
     setAITarget({
       componentId,
       field,
@@ -285,8 +305,15 @@ export function VisualTemplateEditor({
                           key={componentId}
                           id={`component-${componentId}`}
                           className={`relative group ${
-                            viewMode === 'edit' ? 'hover:ring-2 hover:ring-rose-400' : ''
+                            viewMode === 'edit' ? 'hover:ring-2 hover:ring-rose-400 cursor-pointer' : ''
                           }`}
+                          onDoubleClick={(e) => {
+                            e.stopPropagation()
+                            if (viewMode === 'edit' && editingComponent !== componentId) {
+                              setEditingComponent(componentId)
+                            }
+                          }}
+                          title={viewMode === 'edit' ? 'Double-click to edit' : undefined}
                         >
                           {/* Edit Overlay */}
                           {viewMode === 'edit' && (
@@ -295,7 +322,7 @@ export function VisualTemplateEditor({
                                 <button
                                   onClick={() => setEditingComponent(componentId)}
                                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors touch-manipulation"
-                                  title="Edit"
+                                  title="Edit (or double-click component)"
                                 >
                                   <Edit3 size={16} />
                                 </button>
@@ -560,17 +587,33 @@ export function VisualTemplateEditor({
       )}
 
       {/* AI Assistant */}
-      {showAIAssistant && aiTarget && (
-        <AIInlineAssistant
-          text={(pageData[aiTarget.componentId] as Record<string, unknown>)?.[aiTarget.field] as string || ''}
-          onApply={applyAIEnhancement}
-          onClose={() => setShowAIAssistant(false)}
-          position={aiTarget.position}
-          recipientName={recipientName}
-          componentType={aiTarget.componentType}
-          fieldType={aiTarget.fieldType}
-        />
-      )}
+      {showAIAssistant && aiTarget && (() => {
+        // Check if this is a memory field
+        const memoryMatch = aiTarget.field.match(/^memory-(\d+)-(title|description)$/)
+        let currentText = ''
+        
+        if (memoryMatch) {
+          // Get text from memories array
+          const memoryIndex = parseInt(memoryMatch[1], 10)
+          const fieldName = memoryMatch[2] as 'title' | 'description'
+          currentText = memories[memoryIndex]?.[fieldName] || ''
+        } else {
+          // Get text from pageData
+          currentText = (pageData[aiTarget.componentId] as Record<string, unknown>)?.[aiTarget.field] as string || ''
+        }
+        
+        return (
+          <AIInlineAssistant
+            text={currentText}
+            onApply={applyAIEnhancement}
+            onClose={() => setShowAIAssistant(false)}
+            position={aiTarget.position}
+            recipientName={recipientName}
+            componentType={aiTarget.componentType}
+            fieldType={aiTarget.fieldType}
+          />
+        )
+      })()}
 
       {/* Upgrade Modal */}
       {upgradeModal.isOpen && (
@@ -592,6 +635,16 @@ export function VisualTemplateEditor({
           onCopyUrl={() => {
             navigator.clipboard.writeText(shareUrl)
           }}
+        />
+      )}
+
+      {/* Privacy Modal */}
+      {showPrivacyModal && (
+        <PrivacyModal
+          isOpen={showPrivacyModal}
+          onClose={() => setShowPrivacyModal(false)}
+          onConfirm={handlePrivacyConfirm}
+          defaultIsPrivate={false}
         />
       )}
     </div>

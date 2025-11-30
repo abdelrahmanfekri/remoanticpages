@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import type { MediaItem } from '@/components/MediaUploader'
 import type { Tier } from '@/lib/tiers'
 
@@ -65,6 +66,7 @@ interface EditorState {
   isSaving: boolean
   showShareModal: boolean
   shareUrl: string
+  showPrivacyModal: boolean
   
   // Upgrade Modal
   upgradeModal: UpgradeModal
@@ -108,6 +110,7 @@ interface EditorActions {
   setIsSaving: (saving: boolean) => void
   setShowShareModal: (show: boolean) => void
   setShareUrl: (url: string) => void
+  setShowPrivacyModal: (show: boolean) => void
   
   // Upgrade Modal Actions
   setUpgradeModal: (modal: UpgradeModal) => void
@@ -178,6 +181,7 @@ const initialState: EditorState = {
   isSaving: false,
   showShareModal: false,
   shareUrl: '',
+  showPrivacyModal: false,
   
   // Upgrade Modal
   upgradeModal: {
@@ -190,8 +194,10 @@ const initialState: EditorState = {
   memories: [],
 }
 
-export const useEditorStore = create<EditorStore>((set, get) => ({
-  ...initialState,
+export const useEditorStore = create<EditorStore>()(
+  persist(
+    (set, get) => ({
+      ...initialState,
 
   // Core Actions
   setSetupStep: (step) => set({ setupStep: step }),
@@ -225,8 +231,27 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setEditingField: (field) => set({ editingField: field }),
   
   applyAIEnhancement: (enhancedText) => {
-    const { aiTarget, updateComponentData, setShowAIAssistant } = get()
-    if (aiTarget) {
+    const { aiTarget, updateComponentData, setShowAIAssistant, memories } = get()
+    if (!aiTarget) return
+
+    // Check if this is a memory field (format: memory-{index}-{fieldName})
+    const memoryMatch = aiTarget.field.match(/^memory-(\d+)-(title|description)$/)
+    
+    if (memoryMatch) {
+      // Handle memory field update
+      const memoryIndex = parseInt(memoryMatch[1], 10)
+      const fieldName = memoryMatch[2] as 'title' | 'description'
+      const updated = [...memories]
+      if (updated[memoryIndex]) {
+        updated[memoryIndex] = {
+          ...updated[memoryIndex],
+          [fieldName]: enhancedText,
+        }
+        set({ memories: updated })
+      }
+      setShowAIAssistant(false)
+    } else {
+      // Handle regular component field update
       updateComponentData(aiTarget.componentId, {
         [aiTarget.field]: enhancedText,
       })
@@ -249,6 +274,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   setIsSaving: (saving) => set({ isSaving: saving }),
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShareUrl: (url) => set({ shareUrl: url }),
+  setShowPrivacyModal: (show) => set({ showPrivacyModal: show }),
 
   // Upgrade Modal Actions
   setUpgradeModal: (modal) => set({ upgradeModal: modal }),
@@ -325,5 +351,49 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   resetEditor: () => {
     set(initialState)
   },
-}))
+    }),
+    {
+      name: 'romantic-story-editor-storage', // unique name for localStorage key
+      storage: createJSONStorage(() => localStorage),
+      // Only persist the important data, not UI states like modals
+      partialize: (state) => ({
+        // Core States
+        pageData: state.pageData,
+        activeComponents: state.activeComponents,
+        viewMode: state.viewMode,
+        deviceView: state.deviceView,
+        setupStep: state.setupStep,
+        
+        // Quick Setup Data
+        recipientName: state.recipientName,
+        mainMessage: state.mainMessage,
+        
+        // Media States
+        media: state.media,
+        musicUrl: state.musicUrl,
+        
+        // Style States
+        customTheme: state.customTheme,
+        
+        // Memories Management
+        memories: state.memories,
+        
+        // Don't persist UI states (modals, panels, etc.) - they should reset on page load
+        // showAIAssistant: false,
+        // aiTarget: null,
+        // editingComponent: null,
+        // editingField: null,
+        // showStylePanel: false,
+        // showMediaPanel: false,
+        // showMusicPanel: false,
+        // showComponentsPanel: false,
+        // isSaving: false,
+        // showShareModal: false,
+        // shareUrl: '',
+        // showPrivacyModal: false,
+        // upgradeModal: { isOpen: false, feature: '', requiredTier: 'premium' },
+      }),
+    }
+  )
+)
 

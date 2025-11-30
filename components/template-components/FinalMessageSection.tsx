@@ -50,7 +50,8 @@ export function FinalMessageSection({
 
   const content = defaultContent.message || getText(page.final_message)
   const finalSignature = defaultContent.signature || signature
-  if (!content) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (!content && !isEditMode) return null
 
   const finalStyle = style || variant
 

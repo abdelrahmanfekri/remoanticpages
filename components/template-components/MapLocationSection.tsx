@@ -44,7 +44,8 @@ export function MapLocationSection({
   const longitude = lng || defaultContent.lng || 0
   const locationAddress = address || defaultContent.address || ''
 
-  if (!latitude || !longitude) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if ((!latitude || !longitude) && !isEditMode) return null
 
   // Generate Google Maps embed URL
   const mapUrl = `https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q=${latitude},${longitude}`

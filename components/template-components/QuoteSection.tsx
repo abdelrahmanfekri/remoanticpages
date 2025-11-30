@@ -48,8 +48,8 @@ export function QuoteSection({
 
   const quoteText = quote || defaultContent.text || defaultContent.quote || ''
   const authorText = author || defaultContent.author || ''
-
-  if (!quoteText) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (!quoteText && !isEditMode) return null
 
   const finalStyle = style || variant
 

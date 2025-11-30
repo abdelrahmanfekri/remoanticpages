@@ -49,7 +49,8 @@ export function VideoSection({
            item.file_type === 'video'
   })
 
-  if (videos.length === 0) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (videos.length === 0 && !isEditMode) return null
 
   const isVideo = (url: string) => {
     const lowerUrl = url.toLowerCase()

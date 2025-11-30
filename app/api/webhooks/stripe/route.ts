@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import type { Tier } from '@/lib/tiers'
@@ -17,6 +17,82 @@ function validateTier(tier: string | undefined): Tier {
   return 'premium'
 }
 
+// Helper function to safely convert Stripe timestamp to ISO string
+function convertStripeTimestamp(timestamp: number | undefined | null, fallbackDays: number = 30): string {
+  try {
+    if (timestamp && typeof timestamp === 'number') {
+      return new Date(timestamp * 1000).toISOString()
+    }
+    // Fallback to current time + specified days
+    return new Date(Date.now() + fallbackDays * 24 * 60 * 60 * 1000).toISOString()
+  } catch (error) {
+    console.error('Date conversion error:', error)
+    return new Date(Date.now() + fallbackDays * 24 * 60 * 60 * 1000).toISOString()
+  }
+}
+
+// Helper function to get subscription status
+function getSubscriptionStatus(stripeStatus: string): 'active' | 'canceled' | 'past_due' | 'unpaid' {
+  if (stripeStatus === 'active' || stripeStatus === 'trialing') {
+    return 'active'
+  }
+  if (stripeStatus === 'canceled') {
+    return 'canceled'
+  }
+  if (stripeStatus === 'past_due') {
+    return 'past_due'
+  }
+  return 'unpaid'
+}
+
+// Helper function to get customer ID from Stripe subscription
+function getCustomerId(customer: string | Stripe.Customer | Stripe.DeletedCustomer): string {
+  if (typeof customer === 'string') {
+    return customer
+  }
+  if (customer && typeof customer === 'object' && 'id' in customer) {
+    return customer.id
+  }
+  return ''
+}
+
+// Helper function to upsert subscription to database
+async function upsertSubscription(
+  supabase: ReturnType<typeof createAdminClient>,
+  subscription: Stripe.Subscription,
+  userId: string,
+  tier: Tier
+) {
+  const subData = subscription as any
+  const periodStart = convertStripeTimestamp(subData.current_period_start, 0)
+  const periodEnd = convertStripeTimestamp(subData.current_period_end, 30)
+  const status = getSubscriptionStatus(subscription.status)
+  const customerId = getCustomerId(subscription.customer)
+
+  const { error, data } = await supabase
+    .from('subscriptions')
+    .upsert({
+      user_id: userId,
+      tier,
+      status,
+      stripe_subscription_id: subscription.id,
+      stripe_customer_id: customerId,
+      current_period_start: periodStart,
+      current_period_end: periodEnd,
+      cancel_at_period_end: subscription.cancel_at_period_end || false,
+    }, {
+      onConflict: 'stripe_subscription_id'
+    })
+
+  if (error) {
+    console.error('Error upserting subscription:', error)
+    return { success: false, error }
+  }
+
+  console.log(`✅ Subscription ${subscription.id} saved for user ${userId} - tier: ${tier}, status: ${status}`)
+  return { success: true, data }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const sig = request.headers.get('stripe-signature')
@@ -32,45 +108,37 @@ export async function POST(request: NextRequest) {
     const body = await request.text()
     const event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
 
-    const supabase = await createClient()
+    // Use admin client to bypass RLS for webhook operations
+    const supabase = createAdminClient()
 
     switch (event.type) {
       // Subscription created/updated
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.client_reference_id
-        const tier = validateTier(session.metadata?.tier as string)
 
-        // Only process if it's a subscription and has userId
-        if (session.mode === 'subscription' && session.subscription && userId) {
-          try {
-            // Get subscription details
-            const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
-            
-            const subData = subscription as any // Stripe types can be inconsistent
-            const { error: upsertError } = await supabase
-              .from('subscriptions')
-              .upsert({
-                user_id: userId,
-                tier,
-                status: subscription.status === 'active' || subscription.status === 'trialing' ? 'active' : 'canceled',
-                stripe_subscription_id: subscription.id,
-                stripe_customer_id: typeof subscription.customer === 'string' ? subscription.customer : (subscription.customer as any)?.id || '',
-                current_period_start: new Date(subData.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(subData.current_period_end * 1000).toISOString(),
-                cancel_at_period_end: subscription.cancel_at_period_end || false,
-              }, {
-                onConflict: 'stripe_subscription_id'
-              })
-
-            if (upsertError) {
-              console.error('Error upserting subscription:', upsertError)
-            }
-          } catch (subError) {
-            console.error('Error retrieving subscription:', subError)
-          }
-        } else if (!userId) {
+        if (!userId) {
           console.error('Missing user_id in checkout.session.completed event')
+          break
+        }
+
+        if (session.mode !== 'subscription' || !session.subscription) {
+          console.error('Not a subscription checkout or missing subscription ID')
+          break
+        }
+
+        try {
+          // Get subscription details
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+          
+          // Get tier from session metadata or subscription metadata
+          const tier = validateTier(
+            session.metadata?.tier || subscription.metadata?.tier as string
+          )
+
+          await upsertSubscription(supabase, subscription, userId, tier)
+        } catch (error) {
+          console.error('Error processing checkout.session.completed:', error)
         }
         break
       }
@@ -87,34 +155,12 @@ export async function POST(request: NextRequest) {
           .eq('stripe_subscription_id', subscription.id)
           .maybeSingle()
         
-        const userId = existing?.user_id
-        if (userId) {
-          const status = subscription.status === 'active' || subscription.status === 'trialing' ? 'active' : 
-                        subscription.status === 'canceled' ? 'canceled' : 
-                        subscription.status === 'past_due' ? 'past_due' : 'unpaid'
-
-          const subData = subscription as any // Stripe types can be inconsistent
-          const { error: upsertError } = await supabase
-            .from('subscriptions')
-            .upsert({
-              user_id: userId,
-              tier,
-              status,
-              stripe_subscription_id: subscription.id,
-              stripe_customer_id: typeof subscription.customer === 'string' ? subscription.customer : (subscription.customer as any)?.id || '',
-              current_period_start: new Date(subData.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subData.current_period_end * 1000).toISOString(),
-              cancel_at_period_end: subscription.cancel_at_period_end || false,
-            }, {
-              onConflict: 'stripe_subscription_id'
-            })
-
-          if (upsertError) {
-            console.error('Error upserting subscription update:', upsertError)
-          }
-        } else {
+        if (!existing?.user_id) {
           console.warn(`No user found for subscription ${subscription.id}`)
+          break
         }
+
+        await upsertSubscription(supabase, subscription, existing.user_id, tier)
         break
       }
 
@@ -138,26 +184,33 @@ export async function POST(request: NextRequest) {
       // Subscription payment succeeded
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as any // Stripe Invoice type
-        const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id
-        if (subscriptionId) {
-          try {
-            const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-            const subData = subscription as any
-            const { error: updateError } = await supabase
-              .from('subscriptions')
-              .update({
-                status: 'active',
-                current_period_start: new Date(subData.current_period_start * 1000).toISOString(),
-                current_period_end: new Date(subData.current_period_end * 1000).toISOString(),
-              })
-              .eq('stripe_subscription_id', subscription.id)
+        const subscriptionId = typeof invoice.subscription === 'string' 
+          ? invoice.subscription 
+          : invoice.subscription?.id
 
-            if (updateError) {
-              console.error('Error updating payment succeeded:', updateError)
-            }
-          } catch (error) {
-            console.error('Error retrieving subscription for payment succeeded:', error)
+        if (!subscriptionId) {
+          break
+        }
+
+        try {
+          const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+          
+          // Get user_id from existing subscription
+          const { data: existing } = await supabase
+            .from('subscriptions')
+            .select('user_id, tier')
+            .eq('stripe_subscription_id', subscription.id)
+            .maybeSingle()
+
+          if (!existing?.user_id) {
+            console.warn(`No user found for subscription ${subscription.id} in payment_succeeded`)
+            break
           }
+
+          const tier = validateTier(subscription.metadata?.tier || existing.tier)
+          await upsertSubscription(supabase, subscription, existing.user_id, tier)
+        } catch (error) {
+          console.error('Error processing invoice.payment_succeeded:', error)
         }
         break
       }

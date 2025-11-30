@@ -190,8 +190,18 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
       const introText = (introData.text as string) || ''
       const finalMessage = (finalData.message as string) || ''
 
-      // If editing, update existing page
+      const isPrivate = (data.isPrivate as boolean) || false
+      const password = (data.password as string) || ''
+
       if (editPageId && pageId) {
+        const bcrypt = await import('bcryptjs')
+        let passwordHash = null
+        if (isPrivate && password) {
+          passwordHash = await bcrypt.default.hash(password, 10)
+        } else if (!isPrivate) {
+          passwordHash = null
+        }
+
         const result = await updatePage(pageId, {
           title,
           recipient_name: recipientName,
@@ -201,6 +211,8 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
           background_music_url: (musicUrl as string) || null,
           has_music: !!musicUrl,
           media_count: formattedMedia.length,
+          is_public: !isPrivate,
+          password_hash: passwordHash,
           config: pageConfig,
         })
 
@@ -224,8 +236,8 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
         memories: formattedMemories,
         media: formattedMedia,
         musicUrl: (musicUrl as string) || undefined,
-        password: '',
-        isPublic: false,
+        password: isPrivate ? password : '',
+        isPublic: !isPrivate,
         templateId: finalTemplateId,
         isCustom,
         config: pageConfig,

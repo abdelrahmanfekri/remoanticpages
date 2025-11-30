@@ -50,7 +50,8 @@ export function IntroSection({
 
   // Support both intro (from page.intro_text) and text-block (from defaultContent)
   const content = defaultContent.text || defaultContent.content || getText(page.intro_text)
-  if (!content) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (!content && !isEditMode) return null
 
   const finalStyle = style || variant
 

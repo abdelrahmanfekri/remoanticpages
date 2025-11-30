@@ -151,26 +151,52 @@ export function InlineComponentEditor({
                     </button>
                   </div>
                   <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={memory.title}
-                      onChange={(e) => onUpdateMemory(index, { title: e.target.value })}
-                      placeholder="Title..."
-                      className="w-full p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none touch-manipulation"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={memory.title}
+                        onChange={(e) => onUpdateMemory(index, { title: e.target.value })}
+                        placeholder="Title..."
+                        className="w-full p-2 pr-10 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none touch-manipulation"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onAIEnhance(`memory-${index}-title`, 'memories-grid', 'title', e)
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-1.5 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all z-10 touch-manipulation border-2 border-white group"
+                        title="✨ AI Assistant - Generate or enhance title"
+                        aria-label="AI Assistant"
+                      >
+                        <Sparkles size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                      </button>
+                    </div>
                     <input
                       type="text"
                       value={memory.date || ''}
                       onChange={(e) => onUpdateMemory(index, { date: e.target.value })}
                       placeholder="Date (optional)..."
-                      className="w-full p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none"
+                      className="w-full p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none touch-manipulation"
                     />
-                    <textarea
-                      value={memory.description}
-                      onChange={(e) => onUpdateMemory(index, { description: e.target.value })}
-                      placeholder="Description..."
-                      className="w-full min-h-[60px] p-2 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none resize-none touch-manipulation"
-                    />
+                    <div className="relative">
+                      <textarea
+                        value={memory.description}
+                        onChange={(e) => onUpdateMemory(index, { description: e.target.value })}
+                        placeholder="Description..."
+                        className="w-full min-h-[60px] p-2 pr-10 text-sm border border-gray-300 rounded focus:border-rose-500 focus:outline-none resize-none touch-manipulation"
+                      />
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onAIEnhance(`memory-${index}-description`, 'memories-grid', 'message', e)
+                        }}
+                        className="absolute right-2 top-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white p-1.5 rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all z-10 touch-manipulation border-2 border-white group"
+                        title="✨ AI Assistant - Generate or enhance description"
+                        aria-label="AI Assistant"
+                      >
+                        <Sparkles size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

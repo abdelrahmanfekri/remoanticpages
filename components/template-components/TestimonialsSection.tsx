@@ -51,8 +51,8 @@ export function TestimonialsSection({
   const testimonialsList = testimonials.length > 0 
     ? testimonials 
     : (defaultContent.testimonials || [])
-
-  if (testimonialsList.length === 0) return null
+  const isEditMode = (defaultContent as any)?.viewMode === 'edit'
+  if (testimonialsList.length === 0 && !isEditMode) return null
 
   if (variant === 'grid') {
     return (
