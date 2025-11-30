@@ -226,7 +226,7 @@ export function BlockEditor({
                     toggleBlockSettings()
                   }}
                   onBlockUpdate={(blockId, content, settings) => {
-                    updateBlock(blockId, { content, settings })
+                    updateBlock(blockId, { content: content as any, settings: settings as any })
                   }}
                 />
               </div>

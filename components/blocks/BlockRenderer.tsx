@@ -31,7 +31,7 @@ interface BlockRendererProps {
 }
 
 export function BlockRenderer({ page, editable = false, onBlockClick, onBlockUpdate }: BlockRendererProps) {
-  const theme = page.theme as PageTheme
+  const theme = (page.theme as unknown as PageTheme) || { primaryColor: '#f43f5e', secondaryColor: '#ec4899', fontFamily: 'serif' }
   const settings = page.settings as any
   const blocks = page.blocks || []
   const memories = page.memories || []
