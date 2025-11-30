@@ -4,22 +4,22 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserTier } from '@/lib/subscription'
 import { checkPageLimit } from '@/lib/tiers'
 import bcrypt from 'bcryptjs'
-import { getTemplateSchema, schemaToConfig, getDefaultConfig, type TemplateName } from '@/lib/template-schemas'
 import { cookies } from 'next/headers'
-import type { PageWithRelations } from '@/types'
+import type { PageWithRelations, PageTheme, PageSettings, BlockData } from '@/types'
+import { getTemplate } from '@/lib/blocks'
 
 export interface CreatePageData {
   title: string
-  recipientName: string
-  languages: string[]
-  heroText?: Record<string, string>
-  introText?: Record<string, string>
-  finalMessage?: Record<string, string>
+  recipientName?: string
+  templateId?: string
+  theme?: PageTheme
+  settings?: Partial<PageSettings>
+  blocks: BlockData[]
   memories?: Array<{
     id?: string
     title: string
     date?: string
-    description: string | Record<string, string>
+    description: string
     order: number
     image_url?: string | null
   }>
@@ -27,14 +27,8 @@ export interface CreatePageData {
     url: string
     type: 'image' | 'video'
     order?: number
-    uploading?: boolean
   }>
-  musicUrl?: string
   password?: string
-  isPublic?: boolean
-  templateId?: string
-  isCustom?: boolean
-  config?: Record<string, unknown>
 }
 
 export interface CreatePageResult {
@@ -59,22 +53,17 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
     const {
       title,
       recipientName,
-      languages,
-      heroText,
-      introText,
-      finalMessage,
+      templateId,
+      theme,
+      settings,
+      blocks,
       memories,
       media,
-      musicUrl,
       password,
-      isPublic,
-      templateId,
-      isCustom = false,
     } = data
 
-    // Validate required fields
-    if (!title || !recipientName) {
-      return { error: 'Title and recipient name are required' }
+    if (!title || !blocks || blocks.length === 0) {
+      return { error: 'Title and at least one block are required' }
     }
 
     // Check page limit
@@ -115,30 +104,38 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
       }
     }
 
-    // Get template config
-    let pageConfig
-    let templateName: string
-
-    if (isCustom) {
-      // Use default config for custom pages
-      pageConfig = getDefaultConfig()
-      templateName = 'Custom'
-    } else if (templateId) {
-      // Get template schema and convert to config
-      const schema = getTemplateSchema(templateId as TemplateName)
-      if (!schema) {
-        return { error: 'Template not found' }
+    // Get default theme from template if not provided
+    let pageTheme = theme
+    if (!pageTheme && templateId) {
+      const template = getTemplate(templateId)
+      if (template) {
+        pageTheme = template.theme
       }
-      pageConfig = schemaToConfig(schema)
-      templateName = schema.templateName
-    } else {
-      return { error: 'Template ID or custom flag required' }
     }
 
-    // Hash password if provided
+    if (!pageTheme) {
+      pageTheme = {
+        primaryColor: '#f43f5e',
+        secondaryColor: '#ec4899',
+        fontFamily: 'serif',
+        backgroundColor: '#ffffff',
+      }
+    }
+
+    // Prepare settings
     let passwordHash = null
     if (password && password.trim()) {
       passwordHash = await bcrypt.hash(password, 10)
+    }
+
+    const pageSettings: PageSettings = {
+      musicUrl: settings?.musicUrl || null,
+      isPublic: settings?.isPublic ?? false,
+      passwordHash: passwordHash || undefined,
+      animations: settings?.animations || {
+        enabled: true,
+        style: 'smooth',
+      },
     }
 
     // Create page
@@ -146,22 +143,13 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
       .from('pages')
       .insert({
         user_id: user.id,
-        template_name: templateName,
         slug,
         title,
-        recipient_name: recipientName,
-        hero_text: heroText?.[languages[0]] || null,
-        intro_text: introText?.[languages[0]] || null,
-        final_message: finalMessage?.[languages[0]] || null,
-        password_hash: passwordHash,
-        is_public: isPublic || false,
-        background_music_url: musicUrl || null,
-        language: languages.join(','),
+        recipient_name: recipientName || null,
+        template_id: templateId || null,
+        theme: pageTheme,
+        settings: pageSettings,
         tier_used: userTier,
-        media_count: media?.length || 0,
-        has_music: !!musicUrl,
-        has_custom_animations: false,
-        config: pageConfig,
       })
       .select()
       .single()
@@ -171,14 +159,34 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
       return { error: pageError.message }
     }
 
-    if (memories && Array.isArray(memories) && memories.length > 0) {
+    // Insert blocks
+    if (blocks && blocks.length > 0) {
+      const blocksToInsert = blocks.map((block) => ({
+        page_id: page.id,
+        type: block.type,
+        display_order: block.order,
+        content: block.content || {},
+        settings: block.settings || {},
+      }))
+
+      const { error: blocksError } = await supabase
+        .from('page_blocks')
+        .insert(blocksToInsert)
+
+      if (blocksError) {
+        console.error('Blocks creation error:', blocksError)
+        await supabase.from('pages').delete().eq('id', page.id)
+        return { error: 'Failed to create page blocks' }
+      }
+    }
+
+    // Insert memories if provided
+    if (memories && memories.length > 0) {
       const memoriesToInsert = memories.map((memory) => ({
         page_id: page.id,
         title: memory.title || '',
-        description: typeof memory.description === 'string' 
-          ? memory.description 
-          : memory.description?.[languages[0]] || '',
-        date: memory.date || '',
+        description: memory.description || '',
+        date: memory.date || null,
         image_url: memory.image_url || null,
         display_order: memory.order || 0,
       }))
@@ -186,19 +194,16 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
       await supabase.from('memories').insert(memoriesToInsert)
     }
 
-    if (media && Array.isArray(media) && media.length > 0) {
-      const mediaToInsert = media
-        .filter((m) => m.url && !m.uploading)
-        .map((m, index) => ({
-          page_id: page.id,
-          storage_path: m.url,
-          file_type: m.type === 'video' ? 'video' : 'image',
-          display_order: m.order ?? index,
-        }))
+    // Insert media if provided
+    if (media && media.length > 0) {
+      const mediaToInsert = media.map((m, index) => ({
+        page_id: page.id,
+        storage_path: m.url,
+        file_type: m.type === 'video' ? ('video' as const) : ('image' as const),
+        display_order: m.order ?? index,
+      }))
 
-      if (mediaToInsert.length > 0) {
-        await supabase.from('media').insert(mediaToInsert)
-      }
+      await supabase.from('media').insert(mediaToInsert)
     }
 
     return { page: { id: page.id, slug: page.slug } }
@@ -227,7 +232,7 @@ export async function verifyPagePassword(slug: string, password: string): Promis
 
   const { data: page, error } = await supabase
     .from('pages')
-    .select('id, password_hash')
+    .select('id, settings')
     .eq('slug', slug)
     .single()
 
@@ -235,12 +240,14 @@ export async function verifyPagePassword(slug: string, password: string): Promis
     return { valid: false, error: 'Page not found' }
   }
 
-  if (!page.password_hash) {
+  const settings = page.settings as PageSettings
+  const passwordHash = settings?.passwordHash
+
+  if (!passwordHash) {
     return { valid: true }
   }
 
-  // Verify password against bcrypt hash
-  const isValid = await bcrypt.compare(password, page.password_hash)
+  const isValid = await bcrypt.compare(password, passwordHash)
 
   if (isValid) {
     const cookieStore = await cookies()
@@ -248,7 +255,7 @@ export async function verifyPagePassword(slug: string, password: string): Promis
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: 60 * 60 * 24,
       path: `/p/${slug}`,
     })
 
@@ -264,8 +271,9 @@ export async function getPageById(id: string): Promise<{ page?: PageWithRelation
     .from('pages')
     .select(`
       *,
+      blocks:page_blocks(*),
       memories(*),
-      media(*),
+      media(*)
     `)
     .eq('id', id)
     .single()
@@ -274,15 +282,16 @@ export async function getPageById(id: string): Promise<{ page?: PageWithRelation
     return { error: error?.message || 'Page not found' }
   }
 
-  // Type assertion for page with relations
   const pageWithRelations = page as unknown as PageWithRelations
 
-  // Order memories by display_order if they exist
+  if (pageWithRelations.blocks && Array.isArray(pageWithRelations.blocks)) {
+    pageWithRelations.blocks.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+  }
+
   if (pageWithRelations.memories && Array.isArray(pageWithRelations.memories)) {
     pageWithRelations.memories.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
   }
 
-  // Order media by display_order if they exist
   if (pageWithRelations.media && Array.isArray(pageWithRelations.media)) {
     pageWithRelations.media.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
   }
@@ -292,7 +301,13 @@ export async function getPageById(id: string): Promise<{ page?: PageWithRelation
 
 export async function updatePage(
   id: string,
-  updates: Record<string, unknown>
+  updates: {
+    title?: string
+    recipientName?: string
+    theme?: PageTheme
+    settings?: Partial<PageSettings>
+    password?: string | null
+  }
 ): Promise<{ page?: unknown; error?: string }> {
   const supabase = await createClient()
   const {
@@ -303,10 +318,9 @@ export async function updatePage(
     return { error: 'Unauthorized' }
   }
 
-  // Verify ownership
   const { data: existingPage } = await supabase
     .from('pages')
-    .select('user_id')
+    .select('user_id, settings')
     .eq('id', id)
     .single()
 
@@ -314,9 +328,30 @@ export async function updatePage(
     return { error: 'Forbidden' }
   }
 
+  const updateData: Record<string, unknown> = {}
+  
+  if (updates.title !== undefined) updateData.title = updates.title
+  if (updates.recipientName !== undefined) updateData.recipient_name = updates.recipientName
+  if (updates.theme !== undefined) updateData.theme = updates.theme
+  
+  if (updates.settings || updates.password !== undefined) {
+    const currentSettings = (existingPage.settings as PageSettings) || {}
+    const newSettings = { ...currentSettings, ...updates.settings }
+    
+    if (updates.password !== undefined) {
+      if (updates.password === null || updates.password.trim() === '') {
+        delete newSettings.passwordHash
+      } else {
+        newSettings.passwordHash = await bcrypt.hash(updates.password, 10)
+      }
+    }
+    
+    updateData.settings = newSettings
+  }
+
   const { data: page, error } = await supabase
     .from('pages')
-    .update(updates)
+    .update(updateData)
     .eq('id', id)
     .select()
     .single()
@@ -338,7 +373,6 @@ export async function deletePage(id: string): Promise<{ success?: boolean; error
     return { error: 'Unauthorized' }
   }
 
-  // Verify ownership
   const { data: existingPage } = await supabase
     .from('pages')
     .select('user_id')
@@ -357,4 +391,3 @@ export async function deletePage(id: string): Promise<{ success?: boolean; error
 
   return { success: true }
 }
-

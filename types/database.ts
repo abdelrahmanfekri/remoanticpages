@@ -13,72 +13,77 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          template_name: string
           slug: string
           title: string
-          recipient_name: string
-          hero_text: string | null
-          intro_text: string | null
-          final_message: string | null
-          password_hash: string | null
-          is_public: boolean
-          background_music_url: string | null
-          language: string
+          recipient_name: string | null
+          template_id: string | null
+          theme: Json
+          settings: Json
           tier_used: 'free' | 'premium' | 'pro'
-          media_count: number
-          has_music: boolean
-          has_custom_animations: boolean
           view_count: number
           share_count: number
-          config: Json | null
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          template_name: string
           slug: string
           title: string
-          recipient_name: string
-          hero_text?: string | null
-          intro_text?: string | null
-          final_message?: string | null
-          password_hash?: string | null
-          is_public?: boolean
-          background_music_url?: string | null
-          language?: string
+          recipient_name?: string | null
+          template_id?: string | null
+          theme?: Json
+          settings?: Json
           tier_used?: 'free' | 'premium' | 'pro'
-          media_count?: number
-          has_music?: boolean
-          has_custom_animations?: boolean
           view_count?: number
           share_count?: number
-          config?: Json | null
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           user_id?: string
-          template_name?: string
           slug?: string
           title?: string
-          recipient_name?: string
-          hero_text?: string | null
-          intro_text?: string | null
-          final_message?: string | null
-          password_hash?: string | null
-          is_public?: boolean
-          background_music_url?: string | null
-          language?: string
+          recipient_name?: string | null
+          template_id?: string | null
+          theme?: Json
+          settings?: Json
           tier_used?: 'free' | 'premium' | 'pro'
-          media_count?: number
-          has_music?: boolean
-          has_custom_animations?: boolean
           view_count?: number
           share_count?: number
-          config?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      page_blocks: {
+        Row: {
+          id: string
+          page_id: string
+          type: string
+          display_order: number
+          content: Json
+          settings: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          page_id: string
+          type: string
+          display_order?: number
+          content?: Json
+          settings?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          page_id?: string
+          type?: string
+          display_order?: number
+          content?: Json
+          settings?: Json
           created_at?: string
           updated_at?: string
         }
@@ -87,34 +92,34 @@ export interface Database {
         Row: {
           id: string
           page_id: string
-          order: number
           title: string
           description: string
-          date: string
+          date: string | null
           image_url: string | null
           display_order: number
+          metadata: Json
           created_at: string
         }
         Insert: {
           id?: string
           page_id: string
-          order: number
           title: string
           description: string
-          date: string
+          date?: string | null
           image_url?: string | null
           display_order?: number
+          metadata?: Json
           created_at?: string
         }
         Update: {
           id?: string
           page_id?: string
-          order?: number
           title?: string
           description?: string
-          date?: string
+          date?: string | null
           image_url?: string | null
           display_order?: number
+          metadata?: Json
           created_at?: string
         }
       }
@@ -125,6 +130,7 @@ export interface Database {
           storage_path: string
           file_type: 'image' | 'video'
           display_order: number
+          metadata: Json
           created_at: string
         }
         Insert: {
@@ -133,6 +139,7 @@ export interface Database {
           storage_path: string
           file_type: 'image' | 'video'
           display_order?: number
+          metadata?: Json
           created_at?: string
         }
         Update: {
@@ -141,6 +148,7 @@ export interface Database {
           storage_path?: string
           file_type?: 'image' | 'video'
           display_order?: number
+          metadata?: Json
           created_at?: string
         }
       }
@@ -224,7 +232,7 @@ export interface Database {
         Row: {
           id: string
           page_id: string
-          event_type: 'view' | 'share' | 'click' | 'interaction'
+          event_type: 'view' | 'share' | 'click' | 'interaction' | 'block_interaction'
           event_metadata: Json | null
           ip_address: string | null
           user_agent: string | null
@@ -233,7 +241,7 @@ export interface Database {
         Insert: {
           id?: string
           page_id: string
-          event_type: 'view' | 'share' | 'click' | 'interaction'
+          event_type: 'view' | 'share' | 'click' | 'interaction' | 'block_interaction'
           event_metadata?: Json | null
           ip_address?: string | null
           user_agent?: string | null
@@ -242,10 +250,42 @@ export interface Database {
         Update: {
           id?: string
           page_id?: string
-          event_type?: 'view' | 'share' | 'click' | 'interaction'
+          event_type?: 'view' | 'share' | 'click' | 'interaction' | 'block_interaction'
           event_metadata?: Json | null
           ip_address?: string | null
           user_agent?: string | null
+          created_at?: string
+        }
+      }
+      ai_suggestions: {
+        Row: {
+          id: string
+          user_id: string
+          page_id: string | null
+          suggestion_type: 'block_suggestion' | 'text_enhancement' | 'design_improvement' | 'layout_optimization' | 'color_palette' | 'content_generation'
+          context: Json
+          suggestion: Json
+          status: 'pending' | 'accepted' | 'rejected' | 'applied'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          page_id?: string | null
+          suggestion_type: 'block_suggestion' | 'text_enhancement' | 'design_improvement' | 'layout_optimization' | 'color_palette' | 'content_generation'
+          context: Json
+          suggestion: Json
+          status?: 'pending' | 'accepted' | 'rejected' | 'applied'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          page_id?: string | null
+          suggestion_type?: 'block_suggestion' | 'text_enhancement' | 'design_improvement' | 'layout_optimization' | 'color_palette' | 'content_generation'
+          context?: Json
+          suggestion?: Json
+          status?: 'pending' | 'accepted' | 'rejected' | 'applied'
           created_at?: string
         }
       }
