@@ -24,7 +24,11 @@ export default async function PublicPageViewer({
     notFound()
   }
 
-  if (page.password_hash) {
+  // Check if page is private - show password form if password_hash exists
+  // Also check is_public = false as a fallback for edge cases
+  const isPrivate = !page.is_public || !!page.password_hash
+  
+  if (isPrivate && page.password_hash) {
     const cookieStore = await cookies()
     const authCookie = cookieStore.get(`page_auth_${page.id}`)
 

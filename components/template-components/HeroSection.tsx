@@ -72,8 +72,9 @@ export function HeroSection({
     return field[lang] || field.en || ''
   }
 
-  const heroTitle = page.title || settingsTitle || defaultContent.title
-  const heroSubtitle = page.recipient_name || settingsSubtitle || defaultContent.subtitle
+  // Prioritize defaultContent (user edits) over page.title and settingsTitle to prevent duplication
+  const heroTitle = defaultContent.title || page.title || settingsTitle
+  const heroSubtitle = defaultContent.subtitle || page.recipient_name || settingsSubtitle
   const heroImage = defaultContent.image || null
 
   const currentMedia = heroImage ? null : page.media?.[0]

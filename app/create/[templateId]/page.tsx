@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { VisualTemplateEditor } from '@/components/VisualTemplateEditor'
-import { getTemplateSchema, type TemplateName } from '@/lib/template-schemas'
+import { getTemplateSchema, getTemplateIdByDisplayName, type TemplateName } from '@/lib/template-schemas'
 import type { Tier } from '@/lib/tiers'
 import { createPage, updatePage, getPageById } from '@/lib/actions/pages'
 import { getCurrentSubscription } from '@/lib/actions/subscriptions'
@@ -41,12 +41,22 @@ export default function CreatePageEditor({ params }: { params: Promise<{ templat
 
           setPageId(page.id)
           
-          // Extract template ID from page
-          const pageTemplateId = (page as any).template_id || page.template_name
-          if (pageTemplateId) {
-            const schema = getTemplateSchema(pageTemplateId as TemplateName)
-            if (schema) {
-              setTemplateId(pageTemplateId)
+          // Extract template ID from page - convert display name to template ID if needed
+          const pageTemplateName = page.template_name
+          if (pageTemplateName) {
+            // Convert display name (e.g., "Elegant Wedding") to template ID (e.g., "ElegantWedding")
+            const convertedTemplateId = getTemplateIdByDisplayName(pageTemplateName)
+            if (convertedTemplateId && convertedTemplateId !== 'custom') {
+              const schema = getTemplateSchema(convertedTemplateId as TemplateName)
+              if (schema) {
+                setTemplateId(convertedTemplateId)
+              } else if (resolved.templateId !== 'custom') {
+                setTemplateId(resolved.templateId)
+              } else {
+                setTemplateId('RomanticBirthday')
+              }
+            } else if (convertedTemplateId === 'custom') {
+              setTemplateId('RomanticBirthday') // Use default template for custom pages
             } else if (resolved.templateId !== 'custom') {
               setTemplateId(resolved.templateId)
             } else {
