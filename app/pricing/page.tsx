@@ -259,11 +259,11 @@ export default function PricingPage() {
               Start with our free tier and upgrade when you&apos;re ready for more features.
             </p>
             <Link
-              href="/templates"
+              href="/create/prompt"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-10 py-4 rounded-full soft-glow hover:scale-105 transition-transform duration-200 font-semibold text-lg"
             >
               <Sparkles size={20} />
-              Browse Templates
+              Start Creating with AI
             </Link>
           </div>
         </div>

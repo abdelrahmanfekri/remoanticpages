@@ -1,8 +1,11 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { X, Trash2, Copy, ArrowUp, ArrowDown } from 'lucide-react'
 import { getBlockDefinition } from '@/lib/blocks'
+import { InlineAIEnhancer } from './InlineAIEnhancer'
+import { QuickAIActions } from './QuickAIActions'
+import { AIBlockAssistant } from '@/components/ai/core'
 import type { BlockData } from '@/types'
 
 interface BlockSettingsPanelProps {
@@ -13,6 +16,12 @@ interface BlockSettingsPanelProps {
   onMoveUp: () => void
   onMoveDown: () => void
   onClose: () => void
+  context?: {
+    pageTitle?: string
+    recipientName?: string
+    occasion?: string
+    tone?: 'formal' | 'casual' | 'romantic' | 'playful'
+  }
 }
 
 export function BlockSettingsPanel({
@@ -23,8 +32,10 @@ export function BlockSettingsPanel({
   onMoveUp,
   onMoveDown,
   onClose,
+  context,
 }: BlockSettingsPanelProps) {
   const definition = getBlockDefinition(block.type)
+  const [aiEnhanceField, setAiEnhanceField] = useState<string | null>(null)
 
   if (!definition) return null
 
@@ -71,6 +82,106 @@ export function BlockSettingsPanel({
           <Trash2 size={16} />
           Delete Block
         </button>
+
+        {/* Content Fields */}
+        <div className="pt-4 border-t">
+          <h3 className="font-semibold mb-3">Content</h3>
+          
+          {Object.entries(definition.contentSchema).map(([key, schema]) => {
+            const isEnhanceable = schema.aiEnhanceable && 
+              (schema.type === 'text' || schema.type === 'longtext')
+            const currentValue = block.content[key]
+
+            return (
+              <div key={key} className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium">
+                    {schema.label}
+                    {schema.required && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  {isEnhanceable && currentValue && (
+                    <InlineAIEnhancer 
+                      onEnhance={() => setAiEnhanceField(key)}
+                    />
+                  )}
+                </div>
+
+                {isEnhanceable && currentValue && (
+                  <QuickAIActions
+                    content={currentValue as string}
+                    recipientName={context?.recipientName}
+                    onApply={(enhanced) => {
+                      onUpdate({ 
+                        content: { ...block.content, [key]: enhanced } 
+                      })
+                    }}
+                    className="mb-2"
+                  />
+                )}
+                
+                {schema.type === 'text' && (
+                  <input
+                    type="text"
+                    value={(currentValue as string) || ''}
+                    onChange={(e) => onUpdate({ 
+                      content: { ...block.content, [key]: e.target.value } 
+                    })}
+                    placeholder={schema.placeholder}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                )}
+                
+                {schema.type === 'longtext' && (
+                  <textarea
+                    value={(currentValue as string) || ''}
+                    onChange={(e) => onUpdate({ 
+                      content: { ...block.content, [key]: e.target.value } 
+                    })}
+                    placeholder={schema.placeholder}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                  />
+                )}
+
+                {schema.type === 'boolean' && (
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={(currentValue as boolean) || false}
+                      onChange={(e) => onUpdate({ 
+                        content: { ...block.content, [key]: e.target.checked } 
+                      })}
+                      className="w-5 h-5 rounded"
+                    />
+                    <span className="text-sm">Enable</span>
+                  </label>
+                )}
+
+                {schema.type === 'number' && (
+                  <input
+                    type="number"
+                    value={(currentValue as number) || 0}
+                    onChange={(e) => onUpdate({ 
+                      content: { ...block.content, [key]: parseInt(e.target.value) } 
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                )}
+
+                {schema.type === 'date' && (
+                  <input
+                    type="date"
+                    value={(currentValue as string) || ''}
+                    onChange={(e) => onUpdate({ 
+                      content: { ...block.content, [key]: e.target.value } 
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                  />
+                )}
+              </div>
+            )
+          })}
+        </div>
 
         {/* Settings */}
         <div className="pt-4 border-t">
@@ -127,6 +238,23 @@ export function BlockSettingsPanel({
           ))}
         </div>
       </div>
+
+      {/* AI Enhancement Modal */}
+      {aiEnhanceField && (
+        <AIBlockAssistant
+          blockType={block.type}
+          field={aiEnhanceField}
+          currentContent={block.content[aiEnhanceField] as string}
+          context={context}
+          onApply={(enhanced) => {
+            onUpdate({ 
+              content: { ...block.content, [aiEnhanceField]: enhanced } 
+            })
+            setAiEnhanceField(null)
+          }}
+          onClose={() => setAiEnhanceField(null)}
+        />
+      )}
     </div>
   )
 }

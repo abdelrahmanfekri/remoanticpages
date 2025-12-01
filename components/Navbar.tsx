@@ -31,7 +31,7 @@ export function Navbar({ user, userTier = 'free' }: NavbarProps) {
 
   const navLinks = [
     { href: '/', label: 'Home', icon: Home, show: true },
-    { href: '/templates', label: 'Templates', icon: Sparkles, show: true },
+    { href: '/create/prompt', label: 'Create', icon: Sparkles, show: true },
     { href: '/pricing', label: 'Pricing', icon: DollarSign, show: true },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: !!user },
   ]

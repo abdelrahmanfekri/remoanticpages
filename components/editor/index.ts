@@ -1,9 +1,9 @@
+export { InlineAIEnhancer } from './InlineAIEnhancer'
+export { QuickAIActions } from './QuickAIActions'
+export { BlockEditor } from './BlockEditor'
 export { EditorTopBar } from './EditorTopBar'
 export { EditorSidebar } from './EditorSidebar'
-export { ShareModal } from './ShareModal'
-export { BlockEditor } from './BlockEditor'
 export { BlockLibraryPanel } from './BlockLibraryPanel'
 export { BlockSettingsPanel } from './BlockSettingsPanel'
-export { MediaPanel } from './MediaPanels'
 export { ThemePanel } from './ThemePanel'
-
+export { MediaPanel, MusicPanel } from './MediaPanels'

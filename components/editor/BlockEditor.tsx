@@ -16,7 +16,6 @@ import { ThemePanel } from './ThemePanel'
 import { MediaPanel, MusicPanel } from './MediaPanels'
 import { PrivacyModal } from '@/components/PrivacyModal'
 import { UpgradeModal } from '@/components/UpgradeModal'
-import { AIInlineAssistant } from '@/components/AIInlineAssistant'
 
 interface BlockEditorProps {
   pageId?: string
@@ -61,8 +60,6 @@ export function BlockEditor({
     showMediaPanel,
     showMusicPanel,
     showPrivacyModal,
-    showAIAssistant,
-    aiTarget,
     isSaving,
     hasUnsavedChanges,
     upgradeModal,
@@ -87,9 +84,6 @@ export function BlockEditor({
     toggleMediaPanel,
     toggleMusicPanel,
     setShowPrivacyModal,
-    setShowAIAssistant,
-    setAITarget,
-    applyAIEnhancement,
     setIsSaving,
     markAsSaved,
     openUpgradeModal,
@@ -261,6 +255,12 @@ export function BlockEditor({
                 onMoveUp={() => moveBlock(selectedBlockId, 'up')}
                 onMoveDown={() => moveBlock(selectedBlockId, 'down')}
                 onClose={toggleBlockSettings}
+                context={{
+                  pageTitle: title,
+                  recipientName: recipientName || undefined,
+                  occasion: initialData?.settings?.occasion as any,
+                  tone: (theme.mood as any) || 'romantic',
+                }}
               />
             )}
             
@@ -312,23 +312,6 @@ export function BlockEditor({
           requiredTier={upgradeModal.requiredTier}
           currentTier={userTier}
           onClose={closeUpgradeModal}
-        />
-      )}
-
-      {showAIAssistant && aiTarget && (
-        <AIInlineAssistant
-          text={(() => {
-            const block = blocks.find(b => b.id === aiTarget.blockId)
-            return block?.content[aiTarget.field] as string || ''
-          })()}
-          onApply={(enhanced) => {
-            applyAIEnhancement(aiTarget.blockId, aiTarget.field, enhanced)
-          }}
-          onClose={() => setShowAIAssistant(false)}
-          position={aiTarget.position}
-          recipientName={recipientName}
-          componentType="block"
-          fieldType={aiTarget.fieldType === 'longtext' ? 'text' : aiTarget.fieldType}
         />
       )}
     </div>

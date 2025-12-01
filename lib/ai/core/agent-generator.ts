@@ -4,6 +4,7 @@ import { getTemplate, TEMPLATES } from '@/lib/blocks/templates'
 import type { BlockData, PageTheme, BlockType } from '@/types'
 import type { Tier } from '@/lib/tiers'
 import { z } from 'zod'
+import { GeneratedBlockSchema } from '@/lib/ai/schemas/output'
 
 export interface PageGenerationInput {
   prompt: string
@@ -280,19 +281,31 @@ Return JSON with:
     const systemPrompt = this.buildSystemPrompt()
     const userPrompt = this.buildUserPrompt(input, blockStructure)
 
+    const ContentOnlySchema = z.object({
+      title: z.string().min(1).max(200),
+      recipientName: z.string().max(100),
+      blocks: z.array(GeneratedBlockSchema).min(2).max(20),
+      reasoning: z.string().optional(),
+    })
+
     try {
-      const result = await this.client.generateJSON<GeneratedPage>(
+      const result = await this.client.generateJSON<z.infer<typeof ContentOnlySchema>>(
         userPrompt,
-        GeneratedPageSchema,
+        ContentOnlySchema,
         systemPrompt
       )
 
       return {
         ...result,
         theme,
+        blocks: result.blocks as any,
       }
     } catch (error) {
       console.error('Page generation error:', error)
+      if (error instanceof Error) {
+        console.error('Error details:', error.message)
+        console.error('Error stack:', error.stack)
+      }
       throw new Error('Failed to generate page content')
     }
   }
@@ -310,6 +323,28 @@ You have deep knowledge of all available block types and how to use them effecti
 
 # Available Block Types & Their Content:
 ${blockDescriptions}
+
+# CRITICAL JSON Structure:
+Each block MUST have this exact structure:
+{
+  "type": "block-type-name",
+  "content": {
+    // ALL block-specific fields go inside the content object
+    "field1": "value1",
+    "field2": "value2"
+  }
+}
+
+Example correct structure:
+{
+  "type": "hero",
+  "content": {
+    "title": "Happy Birthday!",
+    "subtitle": "Celebrating you today",
+    "showImage": true,
+    "imageUrl": "https://example.com/image.jpg"
+  }
+}
 
 # Your Capabilities:
 1. Create compelling, heartfelt content that resonates emotionally
@@ -338,7 +373,7 @@ ${blockDescriptions}
 - memories: needs title, displays memory cards
 - final-message: heartfelt closing with signature
 
-Return ONLY valid JSON matching the schema. Fill all required content fields with meaningful content.`
+Return ONLY valid JSON matching the schema. ALL block fields MUST be nested inside the "content" object.`
   }
 
   private buildUserPrompt(input: PageGenerationInput, blockStructure: string[]): string {

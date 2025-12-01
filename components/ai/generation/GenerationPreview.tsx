@@ -17,13 +17,21 @@ export function GenerationPreview({ page, onClose }: GenerationPreviewProps) {
     setTimeout(() => setIsVisible(true), 50)
   }, [])
 
+  const pageForRenderer = {
+    ...page,
+    blocks: page.blocks,
+    memories: [],
+    media: [],
+    settings: {},
+  }
+
   return (
     <div
-      className={`fixed inset-0 z-50 overflow-y-auto transition-opacity duration-300 ${
+      className={`fixed inset-0 z-40 overflow-y-auto transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <div className="min-h-screen bg-gray-900/95 backdrop-blur-sm">
+      <div className="min-h-screen bg-gray-900/95 backdrop-blur-sm pb-24">
         <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
             <div>
@@ -48,31 +56,11 @@ export function GenerationPreview({ page, onClose }: GenerationPreviewProps) {
           }`}
         >
           <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div
-              className="space-y-0"
-              style={
-                {
-                  '--primary-color': page.theme.primaryColor,
-                  '--secondary-color': page.theme.secondaryColor,
-                  '--font-family': page.theme.fontFamily,
-                  '--background-color': page.theme.backgroundColor || '#ffffff',
-                } as React.CSSProperties
-              }
-            >
-              {page.blocks.map((block) => (
-                <BlockRenderer
-                  key={block.id}
-                  block={block}
-                  theme={page.theme}
-                  editable={false}
-                  onUpdate={() => {}}
-                />
-              ))}
-            </div>
+            <BlockRenderer page={pageForRenderer as any} editable={false} />
           </div>
 
           {page.reasoning && (
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 animate-fade-in">
+            <div className="mt-6 mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4 animate-fade-in">
               <h3 className="text-sm font-semibold text-blue-900 mb-2">✨ AI Reasoning</h3>
               <p className="text-sm text-blue-700">{page.reasoning}</p>
             </div>
