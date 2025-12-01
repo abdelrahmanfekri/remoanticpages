@@ -2,13 +2,13 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getUserTier } from '@/lib/subscription'
-import { createPageGenerator } from '@/lib/ai/core'
+import { createAIPageGeneratorAgent } from '@/lib/ai/core/agent-generator'
 import { createRateLimiter } from '@/lib/ai/utils/rate-limiter'
 import { pageGenerationCache, createCacheKey } from '@/lib/ai/utils/cache'
 import { PageGenerationInputSchema } from '@/lib/ai/schemas'
 import { validateInput } from '@/lib/ai/utils/validators'
 import { createPage } from '@/lib/actions/pages'
-import type { GeneratedPage } from '@/lib/ai/core'
+import type { GeneratedPage } from '@/lib/ai/core/agent-generator'
 
 export interface GeneratePageResult {
   page?: GeneratedPage
@@ -67,8 +67,8 @@ export async function generatePageWithAI(input: {
       return { page: cached }
     }
 
-    const generator = createPageGenerator(userTier)
-    const result = await generator.generatePage({
+    const agent = createAIPageGeneratorAgent(userTier)
+    const result = await agent.generatePageWithProgress({
       prompt: input.prompt,
       occasion: input.occasion as any,
       recipientName: input.recipientName,
@@ -134,6 +134,36 @@ export async function generatePageFromPrompt(input: {
   } catch (error) {
     console.error('Generate page from prompt error:', error)
     return { error: error instanceof Error ? error.message : 'Failed to generate page' }
+  }
+}
+
+export async function acceptGeneratedPage(generatedPage: GeneratedPage): Promise<{
+  pageId?: string
+  slug?: string
+  error?: string
+}> {
+  try {
+    const createResult = await createPage({
+      title: generatedPage.title,
+      recipientName: generatedPage.recipientName || '',
+      theme: generatedPage.theme,
+      settings: {},
+      blocks: generatedPage.blocks,
+      memories: [],
+      media: [],
+    })
+
+    if (createResult.error || !createResult.page) {
+      return { error: createResult.error || 'Failed to create page' }
+    }
+
+    return {
+      pageId: createResult.page.id,
+      slug: createResult.page.slug,
+    }
+  } catch (error) {
+    console.error('Accept generated page error:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to create page' }
   }
 }
 

@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import {
   PromptInput,
@@ -10,41 +9,20 @@ import {
   ExamplePrompts,
   PromptHelpers,
 } from '@/components/ai/prompt'
-import { generatePageFromPrompt } from '@/lib/actions/ai/generate-page'
+import { GenerationFlow } from '@/components/ai/generation'
 
 export default function PromptPage() {
-  const router = useRouter()
   const [prompt, setPrompt] = useState('')
   const [occasion, setOccasion] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
-  const handleGenerate = async () => {
+  const handleGenerate = () => {
     if (prompt.length < 20) return
-
     setIsGenerating(true)
-    setError(null)
+  }
 
-    try {
-      const result = await generatePageFromPrompt({
-        prompt,
-        occasion: occasion || undefined,
-      })
-
-      if (result.error) {
-        setError(result.error)
-        return
-      }
-
-      if (result.data) {
-        router.push(`/dashboard/edit/${result.data.pageId}`)
-      }
-    } catch (err) {
-      console.error('Generation error:', err)
-      setError('Failed to generate page. Please try again.')
-    } finally {
-      setIsGenerating(false)
-    }
+  const handleCancel = () => {
+    setIsGenerating(false)
   }
 
   return (
@@ -86,12 +64,6 @@ export default function PromptPage() {
                 onSubmit={handleGenerate}
                 isLoading={isGenerating}
               />
-
-              {error && (
-                <div className="mt-4 p-4 rounded-lg bg-red-50 border border-red-200">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
-              )}
             </div>
 
             <div className="bg-white rounded-2xl shadow-xl p-4 md:p-8">
@@ -110,27 +82,11 @@ export default function PromptPage() {
         </div>
 
         {isGenerating && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-6 md:p-8 max-w-md w-full shadow-2xl">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-r from-rose-500 to-pink-500 mb-4">
-                  <Loader2 className="text-white animate-spin" size={32} />
-                </div>
-                <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-                  Creating your page...
-                </h3>
-                <p className="text-sm md:text-base text-gray-600 mb-4">
-                  Our AI is crafting a personalized page just for you
-                </p>
-                <div className="space-y-2 text-sm text-gray-500">
-                  <p>✨ Analyzing your prompt</p>
-                  <p>🎨 Choosing the perfect design</p>
-                  <p>📝 Writing personalized content</p>
-                  <p>🖼️ Setting up blocks</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <GenerationFlow
+            prompt={prompt}
+            occasion={occasion || undefined}
+            onCancel={handleCancel}
+          />
         )}
       </div>
     </div>
