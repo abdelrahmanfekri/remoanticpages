@@ -8,7 +8,7 @@ const tierConfigs = [
     key: 'free' as Tier,
     features: [
       '1 page forever',
-      'Basic templates',
+      'AI-powered generation',
       '1 language per page',
       'Basic AI text generation',
       '3 images per page',
@@ -26,7 +26,7 @@ const tierConfigs = [
     key: 'premium' as Tier,
     features: [
       '✨ Unlimited pages',
-      'All premium templates',
+      'Unlimited AI generations',
       'Unlimited AI text generation',
       'Unlimited images',
       '5 videos per page',

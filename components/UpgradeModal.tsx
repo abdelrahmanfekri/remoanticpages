@@ -63,7 +63,7 @@ function getTierFeatures(tier: Tier): string[] {
 
   // Premium tier specific additions
   if (tier === 'premium') {
-    features.push('All premium templates')
+    features.push('Unlimited AI generations')
     features.push('Multiple languages support')
   }
 

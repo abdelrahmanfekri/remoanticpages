@@ -6,12 +6,10 @@ import { checkPageLimit } from '@/lib/tiers'
 import bcrypt from 'bcryptjs'
 import { cookies } from 'next/headers'
 import type { PageWithRelations, PageTheme, PageSettings, BlockData } from '@/types'
-import { getTemplate } from '@/lib/blocks'
 
 export interface CreatePageData {
   title: string
   recipientName?: string
-  templateId?: string
   theme?: PageTheme
   settings?: Partial<PageSettings>
   blocks: BlockData[]
@@ -53,7 +51,6 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
     const {
       title,
       recipientName,
-      templateId,
       theme,
       settings,
       blocks,
@@ -104,22 +101,12 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
       }
     }
 
-    // Get default theme from template if not provided
-    let pageTheme = theme
-    if (!pageTheme && templateId) {
-      const template = getTemplate(templateId)
-      if (template) {
-        pageTheme = template.theme
-      }
-    }
-
-    if (!pageTheme) {
-      pageTheme = {
-        primaryColor: '#f43f5e',
-        secondaryColor: '#ec4899',
-        fontFamily: 'serif',
-        backgroundColor: '#ffffff',
-      }
+    // Use provided theme or default theme
+    const pageTheme = theme || {
+      primaryColor: '#f43f5e',
+      secondaryColor: '#ec4899',
+      fontFamily: 'serif',
+      backgroundColor: '#ffffff',
     }
 
     // Prepare settings
@@ -146,7 +133,7 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
         slug,
         title,
         recipient_name: recipientName || null,
-        template_id: templateId || null,
+        template_id: null,
         theme: pageTheme,
         settings: pageSettings,
         tier_used: userTier,

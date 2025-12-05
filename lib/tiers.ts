@@ -5,7 +5,6 @@
 export type Tier = 'free' | 'premium' | 'pro'
 export type Feature = 
   | 'unlimited_pages'
-  | 'premium_templates'
   | 'unlimited_images'
   | 'videos'
   | 'music'
@@ -55,7 +54,6 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
 
 export const FEATURE_TIERS: Record<Feature, Tier> = {
   unlimited_pages: 'premium',
-  premium_templates: 'premium',
   unlimited_images: 'premium',
   videos: 'premium',
   music: 'premium',

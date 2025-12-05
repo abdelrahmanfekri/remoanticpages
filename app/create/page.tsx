@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Sparkles, LayoutTemplate, FileText, ArrowRight, Crown, Loader2 } from 'lucide-react'
+import { Sparkles, FileText, ArrowRight, Crown, Loader2 } from 'lucide-react'
 import { getCurrentSubscription } from '@/lib/actions/subscriptions'
 import type { Tier } from '@/lib/tiers'
 
@@ -49,16 +49,6 @@ export default function CreatePage() {
       premium: false,
     },
     {
-      id: 'template',
-      title: 'Choose Template',
-      description: 'Start with a beautiful pre-designed template and customize it',
-      icon: <LayoutTemplate size={32} />,
-      href: '/dashboard/create',
-      color: 'from-purple-500 to-pink-500',
-      accentColor: 'purple',
-      premium: false,
-    },
-    {
       id: 'blank',
       title: 'Start Blank',
       description: 'Build your page from scratch with complete creative freedom',
@@ -82,7 +72,7 @@ export default function CreatePage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
           {creationMethods.map((method) => (
             <Link
               key={method.id}

@@ -1,6 +1,5 @@
 import { createAIClient, getModelForTier } from './client'
 import { BLOCK_DEFINITIONS } from '@/lib/blocks/definitions'
-import { getTemplate, TEMPLATES } from '@/lib/blocks/templates'
 import type { BlockData, PageTheme, BlockType } from '@/types'
 import type { Tier } from '@/lib/tiers'
 import { z } from 'zod'
@@ -102,21 +101,10 @@ export class PageGenerator {
       )
       .join('\n')
 
-    const templateExamples = Object.values(TEMPLATES)
-      .slice(0, 3)
-      .map((template) => {
-        const blockTypes = template.blocks.map((b) => b.type).join(', ')
-        return `- ${template.name}: [${blockTypes}]`
-      })
-      .join('\n')
-
     return `You are an expert page designer specializing in creating beautiful, personalized pages for special occasions.
 
 # Available Block Types:
 ${blockDescriptions}
-
-# Example Template Structures:
-${templateExamples}
 
 # Your Task:
 Create a complete page configuration based on the user's prompt. The page should:

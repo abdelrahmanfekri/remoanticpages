@@ -1,5 +1,4 @@
 import { BLOCK_DEFINITIONS } from '@/lib/blocks/definitions'
-import { TEMPLATES } from '@/lib/blocks/templates'
 
 export function buildPageGenerationPrompt(params: {
   userPrompt: string
@@ -98,28 +97,6 @@ export function buildThemeGenerationPrompt(params: {
   return prompt
 }
 
-export function buildTemplateSelectionPrompt(params: {
-  userPrompt: string
-  occasion?: string
-}): string {
-  const { userPrompt, occasion } = params
-
-  const templateList = Object.values(TEMPLATES)
-    .map((t) => `- ${t.name}: ${t.description} (${t.category})`)
-    .join('\n')
-
-  let prompt = `Select the most appropriate template for this request:\n\n`
-  prompt += `"${userPrompt}"\n\n`
-
-  if (occasion) {
-    prompt += `Occasion: ${occasion}\n\n`
-  }
-
-  prompt += `Available templates:\n${templateList}\n\n`
-  prompt += `Return ONLY the template name that best matches the request.`
-
-  return prompt
-}
 
 export function buildBlockSuggestionPrompt(params: {
   existingBlocks: string[]

@@ -1,6 +1,5 @@
 import { createAIClient, getModelForTier } from './client'
 import { BLOCK_DEFINITIONS } from '@/lib/blocks/definitions'
-import { getTemplate, TEMPLATES } from '@/lib/blocks/templates'
 import type { BlockData, PageTheme, BlockType } from '@/types'
 import type { Tier } from '@/lib/tiers'
 import { z } from 'zod'
