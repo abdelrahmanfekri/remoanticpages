@@ -23,46 +23,48 @@ const tierConfigs = [
     hasCheckout: false,
   },
   {
-    key: 'premium' as Tier,
+    key: 'pro' as Tier,
     features: [
       '✨ Unlimited pages',
       'Unlimited AI generations',
       'Unlimited AI text generation',
       'Unlimited images',
-      '5 videos per page',
+      'Unlimited videos',
       'Background music',
-      'Basic animations',
-      'Basic analytics (view count)',
-      'QR code sharing',
+      'Advanced animations & effects',
+      'Analytics dashboard',
+      'Multi-language support',
+      'Custom domain support',
+      'Priority support',
       'Cancel anytime',
     ],
-    limitations: ['Limited to 5 videos per page'],
-    cta: 'Subscribe to Premium',
+    limitations: [],
+    cta: 'Subscribe to Pro',
     ctaStyle: 'bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:scale-105 shadow-xl',
     popular: true,
     savings: 'Cancel anytime, no commitment',
     hasCheckout: true,
   },
   {
-    key: 'pro' as Tier,
+    key: 'lifetime' as Tier,
     features: [
-      '🚀 Everything in Premium',
-      'Unlimited languages per page',
-      'Advanced AI (multi-language translation)',
-      'Unlimited videos',
-      'Advanced animations & effects',
-      'Custom domain / vanity URL',
-      'Detailed analytics dashboard',
+      '🚀 Everything in Pro',
+      'Unlimited pages forever',
+      'Unlimited AI generations',
+      'Unlimited videos & images',
+      'All premium features',
+      'Multi-language support',
+      'Custom domain support',
       'Priority support',
       'Export options (PDF, video)',
       'Early access to new features',
-      'Cancel anytime',
+      'Lifetime access - no recurring fees',
     ],
     limitations: [],
-    cta: 'Subscribe to Pro',
+    cta: 'Get Lifetime Access',
     ctaStyle: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:scale-105 shadow-xl',
     popular: false,
-    savings: 'Cancel anytime, no commitment',
+    savings: 'Best value - pay once, use forever',
     hasCheckout: true,
   },
 ]
@@ -76,6 +78,7 @@ const tiers = tierConfigs.map(config => {
     price: pricing.price,
     priceLabel: pricing.priceLabel,
     description: pricing.description,
+    isOneTime: pricing.isOneTime,
   }
 })
 
@@ -86,13 +89,13 @@ export default function PricingPage() {
         {/* Header */}
         <div className="text-center mb-16 animate-fade-up">
           <div className="inline-block bg-gradient-to-r from-green-100 to-emerald-100 px-6 py-2 rounded-full mb-4">
-            <span className="text-green-700 font-semibold">💳 Flexible Monthly Subscriptions • Cancel Anytime</span>
+            <span className="text-green-700 font-semibold">💳 Pro Monthly • Lifetime One-Time • Cancel Anytime</span>
           </div>
           <h1 className="text-5xl md:text-6xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500 mb-4">
             Simple, Affordable Pricing
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Start with our free plan and upgrade when you need more. Cancel anytime, no commitment.
+            Start with our free plan and upgrade when you need more. Choose monthly Pro or lifetime access.
           </p>
         </div>
 
@@ -120,8 +123,11 @@ export default function PricingPage() {
                       <span className="text-xl text-gray-500">/{tier.priceLabel}</span>
                     )}
                   </div>
-                  {tier.price > 0 && (
+                  {tier.price > 0 && !tier.isOneTime && (
                     <span className="text-sm font-medium text-green-600">Billed monthly</span>
+                  )}
+                  {tier.price > 0 && tier.isOneTime && (
+                    <span className="text-sm font-medium text-green-600">One-time payment</span>
                   )}
                   {tier.price === 0 && (
                     <span className="text-sm font-medium text-green-600">{tier.priceLabel}</span>
@@ -156,7 +162,7 @@ export default function PricingPage() {
 
               {/* Pricing buttons or checkout */}
               {tier.hasCheckout ? (
-                <CheckoutButton tier={tier.key as 'premium' | 'pro'} />
+                <CheckoutButton tier={tier.key} />
               ) : (
                 <Link
                   href="/login"
@@ -169,12 +175,12 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Why Subscribe */}
+        {/* Why Choose */}
         <div className="mb-16 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-8 md:p-12">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-serif text-blue-900 mb-4">Why Subscribe?</h2>
+            <h2 className="text-3xl font-serif text-blue-900 mb-4">Why Choose Us?</h2>
             <p className="text-blue-700 max-w-2xl mx-auto">
-              Affordable monthly pricing with the flexibility to cancel anytime. No long-term commitment required.
+              Flexible pricing options to fit your needs. Choose monthly Pro or lifetime access.
             </p>
           </div>
 
@@ -183,21 +189,21 @@ export default function PricingPage() {
               <div className="text-4xl mb-3">💰</div>
               <h3 className="font-semibold text-gray-900 mb-2">Affordable Pricing</h3>
               <p className="text-sm text-gray-600">
-                Low monthly fees starting at just ${getTierPricing('premium').price}. No hidden costs or surprises.
+                Pro plan at just ${getTierPricing('pro').price}/month or lifetime access for ${getTierPricing('lifetime').price}. No hidden costs.
               </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-3">🔄</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Cancel Anytime</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Flexible Options</h3>
               <p className="text-sm text-gray-600">
-                No long-term commitment. Cancel your subscription whenever you want.
+                Choose monthly Pro and cancel anytime, or pay once for lifetime access.
               </p>
             </div>
             <div className="text-center">
               <div className="text-4xl mb-3">✨</div>
               <h3 className="font-semibold text-gray-900 mb-2">Always Updated</h3>
               <p className="text-sm text-gray-600">
-                Get all new features and updates automatically included in your subscription
+                Get all new features and updates automatically included at no extra cost.
               </p>
             </div>
           </div>
@@ -210,19 +216,19 @@ export default function PricingPage() {
           </h2>
           <div className="space-y-6">
             <div className="glass-card p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">Can I cancel anytime?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Can I cancel my Pro subscription anytime?</h3>
               <p className="text-gray-600 text-sm">
-                Yes! You can cancel your subscription at any time. No questions asked, no penalties.
+                Yes! You can cancel your Pro subscription at any time. No questions asked, no penalties.
               </p>
             </div>
             <div className="glass-card p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">Can I upgrade or downgrade?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">What's the difference between Pro and Lifetime?</h3>
               <p className="text-gray-600 text-sm">
-                Absolutely! You can upgrade from Free to Premium or Pro anytime, or downgrade if you need less features.
+                Pro is a monthly subscription at ${getTierPricing('pro').price}/month that you can cancel anytime. Lifetime is a one-time payment of ${getTierPricing('lifetime').price} for permanent access with the same features.
               </p>
             </div>
             <div className="glass-card p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">What happens if I cancel?</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">What happens if I cancel Pro?</h3>
               <p className="text-gray-600 text-sm">
                 You&apos;ll continue to have access until the end of your billing period. After that, you&apos;ll move to the Free tier.
               </p>
@@ -230,7 +236,7 @@ export default function PricingPage() {
             <div className="glass-card p-6">
               <h3 className="font-semibold text-gray-900 mb-2">Will I get future updates?</h3>
               <p className="text-gray-600 text-sm">
-                Yes! All new features and improvements are automatically included in your subscription at no extra cost.
+                Yes! All new features and improvements are automatically included for both Pro and Lifetime users at no extra cost.
               </p>
             </div>
             <div className="glass-card p-6">

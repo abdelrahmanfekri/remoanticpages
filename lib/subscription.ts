@@ -44,12 +44,25 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
 }
 
 /**
- * Get user's current tier (checks subscriptions first, then purchases, defaults to free)
+ * Get user's current tier (checks lifetime purchases first, then subscriptions, defaults to free)
  */
 export async function getUserTier(userId: string): Promise<Tier> {
   const supabase = await createClient()
   
-  // Check for active subscription first
+  // Check for lifetime purchase first (lifetime takes priority)
+  const { data: purchase } = await supabase
+    .from('purchases')
+    .select('tier')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .eq('tier', 'lifetime')
+    .single()
+
+  if (purchase) {
+    return purchase.tier as Tier
+  }
+
+  // Check for active subscription
   const { data: subscription } = await supabase
     .from('subscriptions')
     .select('tier, current_period_end')
@@ -62,18 +75,6 @@ export async function getUserTier(userId: string): Promise<Tier> {
     if (periodEnd >= new Date()) {
       return subscription.tier as Tier
     }
-  }
-
-  // Check for completed purchase (lifetime access)
-  const { data: purchase } = await supabase
-    .from('purchases')
-    .select('tier')
-    .eq('user_id', userId)
-    .eq('status', 'completed')
-    .single()
-
-  if (purchase) {
-    return purchase.tier as Tier
   }
 
   // Default to free

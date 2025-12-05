@@ -23,7 +23,7 @@ export function BlockLibraryPanel({
 
   const handleAddBlock = (blockDef: any) => {
     if (blockDef.isPremium && userTier === 'free') {
-      onUpgradeRequired(`${blockDef.label} block`, 'premium')
+      onUpgradeRequired(`${blockDef.label} block`, 'pro')
       return
     }
 

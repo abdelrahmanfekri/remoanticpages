@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
             error: 'Image limit reached',
             message: `Your ${userTier} tier allows ${limits.maxImagesPerPage} images per page. Upgrade to add more.`,
             upgradeRequired: true,
-            requiredTier: 'premium',
+            requiredTier: 'pro',
           },
           { status: 403 }
         )
@@ -73,9 +73,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: 'Videos not available',
-            message: 'Videos are not available on the Free tier. Upgrade to Premium to add videos.',
+            message: 'Videos are not available on the Free tier. Upgrade to Pro to add videos.',
             upgradeRequired: true,
-            requiredTier: 'premium',
+            requiredTier: 'pro',
           },
           { status: 403 }
         )

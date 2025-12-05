@@ -69,10 +69,10 @@ export default async function DashboardPage() {
               <div className="flex-1">
                 <p className="text-sm font-medium text-yellow-800">{pageLimitCheck.message}</p>
                 <Link
-                  href="/pricing?tier=premium"
+                  href="/pricing?tier=pro"
                   className="text-sm text-yellow-700 underline mt-1 inline-block"
                 >
-                  Upgrade to Premium for unlimited pages
+                  Upgrade to Pro for unlimited pages
                 </Link>
               </div>
             </div>

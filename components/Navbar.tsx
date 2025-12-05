@@ -12,7 +12,7 @@ interface NavbarProps {
     id: string
     email?: string
   } | null
-  userTier?: 'free' | 'premium' | 'pro'
+  userTier?: 'free' | 'pro' | 'lifetime'
 }
 
 export function Navbar({ user, userTier = 'free' }: NavbarProps) {
@@ -184,7 +184,7 @@ export function Navbar({ user, userTier = 'free' }: NavbarProps) {
                       className="flex items-center gap-2 px-4 py-3 rounded-lg bg-gradient-to-r from-rose-500 to-pink-500 text-white font-semibold"
                     >
                       <Crown size={18} />
-                      <span>Upgrade to Premium</span>
+                      <span>Upgrade</span>
                     </Link>
                   )}
 

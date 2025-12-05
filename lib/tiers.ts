@@ -2,7 +2,7 @@
  * Tier management and feature gating utilities
  */
 
-export type Tier = 'free' | 'premium' | 'pro'
+export type Tier = 'free' | 'pro' | 'lifetime'
 export type Feature = 
   | 'unlimited_pages'
   | 'unlimited_images'
@@ -32,16 +32,16 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
     canUseCustomAnimations: false,
     canViewAnalytics: false,
   },
-  premium: {
-    maxPages: 5,
-    maxImagesPerPage: 10,
-    maxVideosPerPage: 2,
+  pro: {
+    maxPages: Infinity,
+    maxImagesPerPage: Infinity,
+    maxVideosPerPage: Infinity,
     canUseMusic: true,
-    canUseAdvancedAI: false,
-    canUseCustomAnimations: false,
+    canUseAdvancedAI: true,
+    canUseCustomAnimations: true,
     canViewAnalytics: true,
   },
-  pro: {
+  lifetime: {
     maxPages: Infinity,
     maxImagesPerPage: Infinity,
     maxVideosPerPage: Infinity,
@@ -53,18 +53,18 @@ export const TIER_LIMITS: Record<Tier, TierLimits> = {
 }
 
 export const FEATURE_TIERS: Record<Feature, Tier> = {
-  unlimited_pages: 'premium',
-  unlimited_images: 'premium',
-  videos: 'premium',
-  music: 'premium',
+  unlimited_pages: 'pro',
+  unlimited_images: 'pro',
+  videos: 'pro',
+  music: 'pro',
   advanced_ai: 'pro',
   custom_animations: 'pro',
-  analytics: 'premium',
+  analytics: 'pro',
 }
 
 export function canUseFeature(feature: Feature, userTier: Tier): boolean {
   const requiredTier = FEATURE_TIERS[feature]
-  const tierOrder: Tier[] = ['free', 'premium', 'pro']
+  const tierOrder: Tier[] = ['free', 'pro', 'lifetime']
   return tierOrder.indexOf(userTier) >= tierOrder.indexOf(requiredTier)
 }
 
@@ -80,7 +80,7 @@ export function checkPageLimit(tier: Tier, currentPageCount: number): { allowed:
   if (currentPageCount >= limits.maxPages) {
     return {
       allowed: false,
-      message: `Free tier allows ${limits.maxPages} pages. Upgrade to Premium for unlimited pages.`,
+      message: `Free tier allows ${limits.maxPages} pages. Upgrade to Pro for unlimited pages.`,
     }
   }
   return { allowed: true }
@@ -95,10 +95,10 @@ export function checkMediaLimit(
   const imageLimit = TIER_LIMITS[tier].maxImagesPerPage
 
   if (!canUseUnlimitedImages && imageLimit !== Infinity && currentImageCount >= imageLimit) {
-    const nextTier = tier === 'free' ? 'Premium' : 'Pro'
+    const nextTier = tier === 'free' ? 'Pro' : 'Lifetime'
     return {
       allowed: false,
-      message: `${nextTier} tier allows ${imageLimit === Infinity ? 'unlimited' : imageLimit} images per page. Upgrade${nextTier === 'Pro' ? ' to Pro' : ''} for ${nextTier === 'Pro' ? 'unlimited' : imageLimit} images.`,
+      message: `${nextTier} tier allows ${imageLimit === Infinity ? 'unlimited' : imageLimit} images per page. Upgrade to ${nextTier} for unlimited images.`,
       type: 'image',
     }
   }
@@ -109,15 +109,15 @@ export function checkMediaLimit(
   if (!canUseVideos && currentVideoCount > 0) {
     return {
       allowed: false,
-      message: `Videos are not available on the ${tier === 'free' ? 'Free' : tier.charAt(0).toUpperCase() + tier.slice(1)} tier. Upgrade to Premium to add videos.`,
+      message: `Videos are not available on the ${tier === 'free' ? 'Free' : tier.charAt(0).toUpperCase() + tier.slice(1)} tier. Upgrade to Pro to add videos.`,
       type: 'video',
     }
   }
   if (canUseVideos && videoLimit !== Infinity && currentVideoCount >= videoLimit) {
-    const nextTier = tier === 'free' ? 'Premium' : 'Pro'
+    const nextTier = tier === 'free' ? 'Pro' : 'Lifetime'
     return {
       allowed: false,
-      message: `${nextTier} tier allows ${videoLimit === Infinity ? 'unlimited' : videoLimit} videos per page. Upgrade${nextTier === 'Pro' ? ' to Pro' : ''} for ${nextTier === 'Pro' ? 'unlimited' : videoLimit} videos.`,
+      message: `${nextTier} tier allows ${videoLimit === Infinity ? 'unlimited' : videoLimit} videos per page. Upgrade to ${nextTier} for unlimited videos.`,
       type: 'video',
     }
   }
@@ -128,14 +128,14 @@ export function checkMediaLimit(
 
 export function getUpgradeMessage(feature: Feature, currentTier: Tier): string {
   const requiredTier = FEATURE_TIERS[feature]
-  if (currentTier === requiredTier) {
+  if (currentTier === requiredTier || currentTier === 'lifetime') {
     return ''
   }
   
   const tierNames = {
     free: 'Free',
-    premium: 'Premium',
     pro: 'Pro',
+    lifetime: 'Lifetime',
   }
   
   return `This feature requires ${tierNames[requiredTier]}. Upgrade now to unlock it!`
@@ -144,8 +144,8 @@ export function getUpgradeMessage(feature: Feature, currentTier: Tier): string {
 export function getTierDisplayName(tier: Tier): string {
   const names = {
     free: 'Free',
-    premium: 'Premium',
     pro: 'Pro',
+    lifetime: 'Lifetime',
   }
   return names[tier]
 }
@@ -155,10 +155,11 @@ export function getTierDisplayName(tier: Tier): string {
  */
 export interface TierPricing {
   name: string
-  price: number // Price in dollars (e.g., 4.99)
-  priceInCents: number // Price in cents for Stripe (e.g., 499)
-  priceLabel: string // Display label (e.g., "per month")
+  price: number
+  priceInCents: number
+  priceLabel: string
   description: string
+  isOneTime: boolean
 }
 
 export const TIER_PRICING: Record<Tier, TierPricing> = {
@@ -168,20 +169,23 @@ export const TIER_PRICING: Record<Tier, TierPricing> = {
     priceInCents: 0,
     priceLabel: 'Forever Free',
     description: 'Perfect for trying out',
-  },
-  premium: {
-    name: 'Premium',
-    price: 4.99,
-    priceInCents: 499, // $4.99 in cents
-    priceLabel: 'per month',
-    description: 'Best value for creators',
+    isOneTime: false,
   },
   pro: {
     name: 'Pro',
-    price: 9.99,
-    priceInCents: 999, // $9.99 in cents
+    price: 4.99,
+    priceInCents: 499,
     priceLabel: 'per month',
-    description: 'Everything unlocked',
+    description: 'Unlimited features',
+    isOneTime: false,
+  },
+  lifetime: {
+    name: 'Lifetime',
+    price: 59,
+    priceInCents: 5900,
+    priceLabel: 'one time',
+    description: 'Pay once, use forever',
+    isOneTime: true,
   },
 }
 
@@ -196,4 +200,3 @@ export function getTierPriceInCents(tier: Tier): number {
 export function getTierPricing(tier: Tier): TierPricing {
   return TIER_PRICING[tier]
 }
-

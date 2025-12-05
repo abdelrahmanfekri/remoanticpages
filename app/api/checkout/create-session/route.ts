@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { tier } = body
 
-    if (!tier || (tier !== 'premium' && tier !== 'pro')) {
-      return NextResponse.json({ error: 'Invalid tier. Must be "premium" or "pro"' }, { status: 400 })
+    if (!tier || (tier !== 'pro' && tier !== 'lifetime')) {
+      return NextResponse.json({ error: 'Invalid tier. Must be "pro" or "lifetime"' }, { status: 400 })
     }
 
     // Get pricing from centralized config
@@ -37,7 +37,38 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
-    // Create Stripe Checkout Session for subscription
+    // Handle one-time payment for lifetime
+    if (pricing.isOneTime) {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `${pricing.name} Plan`,
+                description: `One-time payment for ${pricing.name} access - use forever`,
+              },
+              unit_amount: priceInCents,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${baseUrl}/dashboard?payment=success`,
+        cancel_url: `${baseUrl}/pricing?tier=${tier}&canceled=true`,
+        client_reference_id: user.id,
+        metadata: {
+          tier,
+          user_id: user.id,
+          is_one_time: 'true',
+        },
+      })
+
+      return NextResponse.json({ sessionId: session.id, url: session.url })
+    }
+
+    // Handle subscription for Pro
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -63,6 +94,7 @@ export async function POST(request: NextRequest) {
       metadata: {
         tier,
         user_id: user.id,
+        is_one_time: 'false',
       },
       subscription_data: {
         metadata: {
@@ -82,4 +114,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

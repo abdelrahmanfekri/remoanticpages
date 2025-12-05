@@ -19,7 +19,7 @@ export interface Database {
           template_id: string | null
           theme: Json
           settings: Json
-          tier_used: 'free' | 'premium' | 'pro'
+          tier_used: 'free' | 'pro' | 'lifetime'
           view_count: number
           share_count: number
           created_at: string
@@ -156,7 +156,7 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          tier: 'free' | 'premium' | 'pro'
+          tier: 'free' | 'pro' | 'lifetime'
           amount_cents: number
           stripe_payment_intent_id: string | null
           stripe_customer_id: string | null
@@ -167,7 +167,7 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
-          tier: 'free' | 'premium' | 'pro'
+          tier: 'free' | 'pro' | 'lifetime'
           amount_cents: number
           stripe_payment_intent_id?: string | null
           stripe_customer_id?: string | null
@@ -191,7 +191,7 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          tier: 'free' | 'premium' | 'pro'
+          tier: 'free' | 'pro' | 'lifetime'
           status: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing'
           stripe_subscription_id: string | null
           stripe_customer_id: string | null
@@ -204,7 +204,7 @@ export interface Database {
         Insert: {
           id?: string
           user_id: string
-          tier: 'free' | 'premium' | 'pro'
+          tier: 'free' | 'pro' | 'lifetime'
           status?: 'active' | 'canceled' | 'past_due' | 'unpaid' | 'trialing'
           stripe_subscription_id?: string | null
           stripe_customer_id?: string | null

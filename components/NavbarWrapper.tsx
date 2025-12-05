@@ -8,7 +8,7 @@ export async function NavbarWrapper() {
     data: { user },
   } = await supabase.auth.getUser()
 
-  let userTier: 'free' | 'premium' | 'pro' = 'free'
+  let userTier: 'free' | 'pro' | 'lifetime' = 'free'
   
   if (user) {
     userTier = await getUserTier(user.id)

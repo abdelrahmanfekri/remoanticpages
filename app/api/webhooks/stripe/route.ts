@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import type { Tier } from '@/lib/tiers'
+import { getTierPriceInCents } from '@/lib/tiers'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-11-17.clover',
@@ -9,12 +10,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 // Validate tier is one of the allowed values
 function validateTier(tier: string | undefined): Tier {
-  if (tier === 'premium' || tier === 'pro') {
+  if (tier === 'pro' || tier === 'lifetime') {
     return tier as Tier
   }
-  // Default to premium if invalid (shouldn't happen, but safety check)
-  console.warn(`Invalid tier received: ${tier}, defaulting to premium`)
-  return 'premium'
+  if (tier === 'free') {
+    return 'free'
+  }
+  console.warn(`Invalid tier received: ${tier}, defaulting to pro`)
+  return 'pro'
 }
 
 // Helper function to safely convert Stripe timestamp to ISO string
@@ -23,7 +26,6 @@ function convertStripeTimestamp(timestamp: number | undefined | null, fallbackDa
     if (timestamp && typeof timestamp === 'number') {
       return new Date(timestamp * 1000).toISOString()
     }
-    // Fallback to current time + specified days
     return new Date(Date.now() + fallbackDays * 24 * 60 * 60 * 1000).toISOString()
   } catch (error) {
     console.error('Date conversion error:', error)
@@ -45,7 +47,7 @@ function getSubscriptionStatus(stripeStatus: string): 'active' | 'canceled' | 'p
   return 'unpaid'
 }
 
-// Helper function to get customer ID from Stripe subscription
+// Helper function to get customer ID from Stripe
 function getCustomerId(customer: string | Stripe.Customer | Stripe.DeletedCustomer): string {
   if (typeof customer === 'string') {
     return customer
@@ -93,6 +95,39 @@ async function upsertSubscription(
   return { success: true, data }
 }
 
+// Helper function to create lifetime purchase
+async function createLifetimePurchase(
+  supabase: ReturnType<typeof createAdminClient>,
+  paymentIntent: Stripe.PaymentIntent,
+  userId: string,
+  tier: Tier
+) {
+  const customerId = typeof paymentIntent.customer === 'string' 
+    ? paymentIntent.customer 
+    : paymentIntent.customer?.id || null
+
+  const amountCents = paymentIntent.amount || getTierPriceInCents(tier)
+
+  const { error, data } = await supabase
+    .from('purchases')
+    .insert({
+      user_id: userId,
+      tier,
+      amount_cents: amountCents,
+      stripe_payment_intent_id: paymentIntent.id,
+      stripe_customer_id: customerId,
+      status: 'completed',
+    })
+
+  if (error) {
+    console.error('Error creating lifetime purchase:', error)
+    return { success: false, error }
+  }
+
+  console.log(`✅ Lifetime purchase created for user ${userId} - tier: ${tier}, payment: ${paymentIntent.id}`)
+  return { success: true, data }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const sig = request.headers.get('stripe-signature')
@@ -108,11 +143,10 @@ export async function POST(request: NextRequest) {
     const body = await request.text()
     const event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
 
-    // Use admin client to bypass RLS for webhook operations
     const supabase = createAdminClient()
 
     switch (event.type) {
-      // Subscription created/updated
+      // Handle checkout completion (both subscription and one-time)
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.client_reference_id
@@ -122,23 +156,55 @@ export async function POST(request: NextRequest) {
           break
         }
 
-        if (session.mode !== 'subscription' || !session.subscription) {
-          console.error('Not a subscription checkout or missing subscription ID')
+        const tier = validateTier(session.metadata?.tier as string)
+        const isOneTime = session.metadata?.is_one_time === 'true'
+
+        // Handle one-time payment (lifetime)
+        if (isOneTime && session.payment_intent) {
+          try {
+            const paymentIntent = await stripe.paymentIntents.retrieve(
+              typeof session.payment_intent === 'string' 
+                ? session.payment_intent 
+                : session.payment_intent.id
+            )
+            
+            if (paymentIntent.status === 'succeeded') {
+              await createLifetimePurchase(supabase, paymentIntent, userId, tier)
+            }
+          } catch (error) {
+            console.error('Error processing lifetime purchase:', error)
+          }
           break
         }
 
-        try {
-          // Get subscription details
-          const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
-          
-          // Get tier from session metadata or subscription metadata
-          const tier = validateTier(
-            session.metadata?.tier || subscription.metadata?.tier as string
-          )
+        // Handle subscription
+        if (session.mode === 'subscription' && session.subscription) {
+          try {
+            const subscription = await stripe.subscriptions.retrieve(
+              typeof session.subscription === 'string' 
+                ? session.subscription 
+                : session.subscription.id
+            )
+            
+            await upsertSubscription(supabase, subscription, userId, tier)
+          } catch (error) {
+            console.error('Error processing subscription:', error)
+          }
+        }
+        break
+      }
 
-          await upsertSubscription(supabase, subscription, userId, tier)
-        } catch (error) {
-          console.error('Error processing checkout.session.completed:', error)
+      // Handle payment_intent.succeeded for lifetime purchases
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        const tier = validateTier(paymentIntent.metadata?.tier as string)
+
+        if (tier === 'lifetime' && paymentIntent.metadata?.user_id) {
+          try {
+            await createLifetimePurchase(supabase, paymentIntent, paymentIntent.metadata.user_id, tier)
+          } catch (error) {
+            console.error('Error processing payment_intent.succeeded for lifetime:', error)
+          }
         }
         break
       }
@@ -148,7 +214,6 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription
         const tier = validateTier(subscription.metadata?.tier as string)
         
-        // Get user_id from existing subscription
         const { data: existing } = await supabase
           .from('subscriptions')
           .select('user_id')
@@ -183,7 +248,7 @@ export async function POST(request: NextRequest) {
 
       // Subscription payment succeeded
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as any // Stripe Invoice type
+        const invoice = event.data.object as any
         const subscriptionId = typeof invoice.subscription === 'string' 
           ? invoice.subscription 
           : invoice.subscription?.id
@@ -195,7 +260,6 @@ export async function POST(request: NextRequest) {
         try {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId)
           
-          // Get user_id from existing subscription
           const { data: existing } = await supabase
             .from('subscriptions')
             .select('user_id, tier')
@@ -217,8 +281,11 @@ export async function POST(request: NextRequest) {
 
       // Subscription payment failed
       case 'invoice.payment_failed': {
-        const invoice = event.data.object as any // Stripe Invoice type
-        const subscriptionId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription?.id
+        const invoice = event.data.object as any
+        const subscriptionId = typeof invoice.subscription === 'string' 
+          ? invoice.subscription 
+          : invoice.subscription?.id
+          
         if (subscriptionId) {
           const { error: updateError } = await supabase
             .from('subscriptions')

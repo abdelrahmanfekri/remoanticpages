@@ -54,7 +54,7 @@ export function MediaUploader({
       if (mediaType === 'image' && maxImages !== Infinity && imageCount >= maxImages) {
         setError(`Maximum ${maxImages} images allowed`)
         if (onUpgradeRequired) {
-          onUpgradeRequired('Unlimited Images', 'premium')
+          onUpgradeRequired('Unlimited Images', 'pro')
         }
         continue
       }
@@ -62,7 +62,7 @@ export function MediaUploader({
       if (mediaType === 'video' && maxVideos === 0) {
         setError('Videos not available on Free tier')
         if (onUpgradeRequired) {
-          onUpgradeRequired('Video Upload', 'premium')
+          onUpgradeRequired('Video Upload', 'pro')
         }
         continue
       }

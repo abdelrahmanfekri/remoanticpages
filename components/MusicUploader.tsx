@@ -36,9 +36,9 @@ export function MusicUploader({
 
     // Check if user can use music
     if (!canUseMusic) {
-      setError('Background music requires Premium tier')
+      setError('Background music requires Pro tier')
       if (onUpgradeRequired) {
-        onUpgradeRequired('Background Music', 'premium')
+        onUpgradeRequired('Background Music', 'pro')
       }
       return
     }
@@ -141,7 +141,7 @@ export function MusicUploader({
         </p>
         <button
           type="button"
-          onClick={() => onUpgradeRequired?.('Background Music', 'premium')}
+          onClick={() => onUpgradeRequired?.('Background Music', 'pro')}
           className="w-full sm:w-auto bg-gradient-to-r from-rose-500 to-pink-500 text-white px-6 py-3 rounded-full hover:scale-105 active:scale-95 transition-transform touch-manipulation font-semibold"
         >
           Upgrade to Add Music

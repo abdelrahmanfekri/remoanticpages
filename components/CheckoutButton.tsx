@@ -5,7 +5,7 @@ import { Loader2, CreditCard } from 'lucide-react'
 import { getTierPricing, type Tier } from '@/lib/tiers'
 
 interface CheckoutButtonProps {
-  tier: 'premium' | 'pro'
+  tier: 'pro' | 'lifetime' | 'free'
 }
 
 export default function CheckoutButton({ tier }: CheckoutButtonProps) {
@@ -45,6 +45,10 @@ export default function CheckoutButton({ tier }: CheckoutButtonProps) {
     }
   }
 
+  const buttonText = pricing.isOneTime 
+    ? `Buy ${pricing.name} - $${pricing.price}` 
+    : `Subscribe $${pricing.price}/${pricing.priceLabel}`
+
   return (
     <div className="w-full">
       <button
@@ -60,7 +64,7 @@ export default function CheckoutButton({ tier }: CheckoutButtonProps) {
         ) : (
           <>
             <CreditCard size={20} />
-            Subscribe ${pricing.price}/{pricing.priceLabel}
+            {buttonText}
           </>
         )}
       </button>
@@ -75,4 +79,3 @@ export default function CheckoutButton({ tier }: CheckoutButtonProps) {
     </div>
   )
 }
-

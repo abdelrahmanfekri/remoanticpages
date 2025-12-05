@@ -4,7 +4,7 @@ export function buildPageGenerationPrompt(params: {
   userPrompt: string
   occasion?: string
   recipientName?: string
-  tier: 'free' | 'premium' | 'pro'
+  tier: 'free' | 'pro' | 'lifetime'
   preferredBlocks?: string[]
 }): string {
   const { userPrompt, occasion, recipientName, tier, preferredBlocks } = params

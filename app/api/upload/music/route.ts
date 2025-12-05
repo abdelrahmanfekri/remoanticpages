@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Music not available',
-          message: 'Background music is not available on the Free tier. Upgrade to Premium to add music.',
+          message: 'Background music is not available on the Free tier. Upgrade to Pro to add music.',
           upgradeRequired: true,
-          requiredTier: 'premium',
+          requiredTier: 'pro',
         },
         { status: 403 }
       )

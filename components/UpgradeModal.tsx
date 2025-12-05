@@ -61,18 +61,19 @@ function getTierFeatures(tier: Tier): string[] {
     features.push('Analytics dashboard')
   }
 
-  // Premium tier specific additions
-  if (tier === 'premium') {
-    features.push('Unlimited AI generations')
-    features.push('Multiple languages support')
-  }
-
   // Pro tier specific additions
   if (tier === 'pro') {
-    features.unshift('Everything in Premium')
-    features.push('Unlimited languages')
+    features.push('Unlimited AI generations')
+    features.push('Multiple languages support')
     features.push('Custom domain support')
     features.push('Priority customer support')
+  }
+
+  // Lifetime tier specific additions
+  if (tier === 'lifetime') {
+    features.unshift('Everything in Pro')
+    features.push('Lifetime access - no recurring fees')
+    features.push('All future features included')
   }
 
   return features
@@ -132,7 +133,12 @@ export function UpgradeModal({
                 <span className="font-semibold text-rose-700 text-lg">
                   {tierName}
                 </span>
-                {tierPrice > 0 && (
+                {tierPrice > 0 && requiredTier === 'lifetime' && (
+                  <span className="text-sm text-gray-600 ml-2">
+                    ${tierPrice.toFixed(2)} one-time
+                  </span>
+                )}
+                {tierPrice > 0 && requiredTier !== 'lifetime' && (
                   <span className="text-sm text-gray-600 ml-2">
                     ${tierPrice.toFixed(2)}/month
                   </span>

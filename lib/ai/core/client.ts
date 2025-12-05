@@ -121,12 +121,11 @@ export function createAIClient(config?: AIClientConfig): AIClient {
   return new AIClient(config)
 }
 
-export function getModelForTier(tier: 'free' | 'premium' | 'pro'): string {
+export function getModelForTier(tier: 'free' | 'pro' | 'lifetime'): string {
   switch (tier) {
     case 'pro':
+    case 'lifetime':
       return ADVANCED_MODEL
-    case 'premium':
-      return DEFAULT_MODEL
     case 'free':
     default:
       return DEFAULT_MODEL

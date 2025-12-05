@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserSubscription } from '@/lib/subscription'
 
 export interface CurrentSubscriptionResult {
-  tier: 'free' | 'premium' | 'pro'
+  tier: 'free' | 'pro' | 'lifetime'
   status: string | null
   isLifetime?: boolean
   currentPeriodStart?: string
