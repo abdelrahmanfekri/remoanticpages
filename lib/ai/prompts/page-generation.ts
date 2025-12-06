@@ -81,13 +81,27 @@ export function buildPageGenerationPrompt(params: {
   prompt += `7. If bilingual, ensure both languages are natural and emotionally equivalent\n\n`
 
   prompt += `### Design & Theme:\n`
-  prompt += `1. Choose colors that match the occasion and emotional tone\n`
-  prompt += `2. Use soft, romantic colors (roses, pinks, warm tones) for romantic occasions\n`
-  prompt += `3. For birthdays: vibrant but elegant colors\n`
-  prompt += `4. For anniversaries: sophisticated, timeless colors\n`
-  prompt += `5. For weddings: elegant, celebratory colors\n`
-  prompt += `6. Ensure excellent contrast and readability (WCAG AA compliant)\n`
-  prompt += `7. Use serif fonts for elegant, romantic feel\n\n`
+  prompt += `1. Create beautiful gradient backgrounds using soft, harmonious colors:\n`
+  prompt += `   - Romantic occasions (anniversary, wedding, valentine, romance): soft pink-to-white-to-rose gradients\n`
+  prompt += `   - Birthdays: warm pink-to-white-to-yellow gradients\n`
+  prompt += `   - Celebrations: purple-to-white-to-cyan gradients\n`
+  prompt += `   - Use gradients like: from-pink-50 via-white to-rose-50 (or similar harmonious combinations)\n`
+  prompt += `   - Background gradient should have: from (hex color), via (optional hex color), to (hex color), direction (to-b, to-r, to-bl, or to-br)\n`
+  prompt += `2. Background animations - Choose the most appropriate type for the occasion:\n`
+  prompt += `   - floating-hearts: For romantic occasions (anniversary, wedding, valentine, romance) - creates an intimate, loving atmosphere\n`
+  prompt += `   - particles: For birthdays and celebrations - creates a festive, joyful atmosphere\n`
+  prompt += `   - stars: For special moments and achievements - creates a magical, enchanting atmosphere\n`
+  prompt += `   - none: For formal or minimalist occasions\n`
+  prompt += `   - Animation settings: color (should match primaryColor), opacity (0.3-0.5 for subtle), count (10-15), speed (slow/normal/fast), size (small/medium/large)\n`
+  prompt += `3. Use sophisticated color palettes:\n`
+  prompt += `   - Primary color: vibrant but elegant (rose-500, pink-500, purple-500, blue-500, green-500, etc)\n`
+  prompt += `   - Secondary color: complementary warm tone (rose-400, pink-400, purple-400, blue-400, green-400, etc)\n`
+  prompt += `   - Background: soft gradient with multiple stops\n`
+  prompt += `4. Apply glass-card effects: semi-transparent backgrounds with backdrop blur\n`
+  prompt += `5. Add soft glow effects to important elements (hero, cards, buttons)\n`
+  prompt += `6. Use serif fonts for elegant, romantic feel (Playfair Display or similar)\n`
+  prompt += `7. Ensure excellent contrast and readability (WCAG AA compliant)\n`
+  prompt += `8. Background animations should be subtle and enhance the mood, never distract from content\n\n`
 
   prompt += `### Block-Specific Guidelines:\n`
   prompt += `- **Hero:** Create a compelling title and subtitle that captures the essence of the story\n`
@@ -112,9 +126,17 @@ export function buildPageGenerationPrompt(params: {
   prompt += `Generate a complete page configuration with:\n`
   prompt += `1. A compelling title that reflects the story\n`
   prompt += `2. The recipient's name (if provided)\n`
-  prompt += `3. A cohesive color theme (primaryColor, secondaryColor, backgroundColor, fontFamily)\n`
+  prompt += `3. An advanced color theme with:\n`
+  prompt += `   - primaryColor: Main accent color (hex code)\n`
+  prompt += `   - secondaryColor: Complementary color (hex code)\n`
+  prompt += `   - backgroundColor: Base background color (hex code)\n`
+  prompt += `   - fontFamily: 'serif' for elegant/romantic, 'sans-serif' for casual\n`
+  prompt += `   - backgroundGradient: Object with from, via (optional), to, and direction\n`
+  prompt += `   - backgroundAnimation: For romantic occasions, include floating hearts animation\n`
   prompt += `4. An array of 6-10 blocks with rich, detailed, personalized content\n`
-  prompt += `5. Each block should have complete content fields filled with specific, heartfelt text\n\n`
+  prompt += `5. Each block should have complete content fields filled with specific, heartfelt text\n`
+  prompt += `6. Use advanced visual effects: glass cards, soft glows, smooth animations\n`
+  prompt += `7. Create visual hierarchy with spacing, typography, and color\n\n`
 
   prompt += `Remember: The user has shared their personal story. Honor it by creating something beautiful, specific, and deeply meaningful. Make it feel like it was crafted by hand with care and love.\n\n`
 

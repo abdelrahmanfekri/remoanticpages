@@ -4,6 +4,7 @@ import React from 'react'
 import type { PageWithRelations, PageBlock, PageTheme, Memory, Media } from '@/types'
 import { HeroBlock } from './HeroBlock'
 import { IntroBlock } from './IntroBlock'
+import { BackgroundAnimation } from '@/components/BackgroundAnimation'
 import {
   TextBlock,
   QuoteBlock,
@@ -91,16 +92,56 @@ export function BlockRenderer({ page, editable = false, onBlockClick, onBlockUpd
     }
   }
 
-  const bgGradient = `linear-gradient(135deg, ${theme.primaryColor}15 0%, ${theme.backgroundColor || '#ffffff'} 50%, ${theme.secondaryColor}15 100%)`
+  // Build background gradient style from theme
+  const getBackgroundStyle = (): React.CSSProperties => {
+    const baseStyle: React.CSSProperties = {
+      fontFamily: theme.fontFamily === 'serif' ? 'Playfair Display, serif' : 'Inter, sans-serif',
+    }
+
+    if (theme.backgroundGradient) {
+      const { from, via, to, direction = 'to-b' } = theme.backgroundGradient
+      const directionMap: Record<string, string> = {
+        'to-b': 'to bottom',
+        'to-r': 'to right',
+        'to-bl': 'to bottom left',
+        'to-br': 'to bottom right',
+      }
+      
+      const gradientDirection = directionMap[direction] || 'to bottom'
+      const gradientStops = via
+        ? `linear-gradient(${gradientDirection}, ${from}, ${via}, ${to})`
+        : `linear-gradient(${gradientDirection}, ${from}, ${to})`
+      
+      return {
+        ...baseStyle,
+        background: gradientStops,
+      }
+    }
+
+    // Fallback to simple gradient
+    return {
+      ...baseStyle,
+      background: theme.backgroundColor || 'linear-gradient(to bottom right, #fdf2f8, #ffffff, #fdf2f8)',
+    }
+  }
 
   return (
     <div 
-      className="min-h-screen relative overflow-hidden" 
-      style={{
-        background: bgGradient,
-        fontFamily: theme.fontFamily || 'serif',
-      }}
+      className="min-h-screen relative overflow-hidden"
+      style={getBackgroundStyle()}
     >
+      {/* Background Animation */}
+      {theme.backgroundAnimation?.enabled && (
+        <BackgroundAnimation
+          type={theme.backgroundAnimation.type}
+          color={theme.backgroundAnimation.color || theme.primaryColor}
+          opacity={theme.backgroundAnimation.opacity || 0.4}
+          count={theme.backgroundAnimation.count || 12}
+          speed={theme.backgroundAnimation.speed || 'normal'}
+          size={theme.backgroundAnimation.size || 'medium'}
+        />
+      )}
+
       {/* Music Player */}
       {settings?.musicUrl && (
         <MusicPlayer musicUrl={settings.musicUrl} />

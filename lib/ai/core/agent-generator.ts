@@ -67,6 +67,21 @@ const GeneratedPageSchema = z.object({
     secondaryColor: z.string(),
     fontFamily: z.string(),
     backgroundColor: z.string().optional(),
+    backgroundGradient: z.object({
+      from: z.string(),
+      via: z.string().optional(),
+      to: z.string(),
+      direction: z.enum(['to-b', 'to-r', 'to-bl', 'to-br']).optional(),
+    }).optional(),
+    backgroundAnimation: z.object({
+      enabled: z.boolean(),
+      type: z.enum(['floating-hearts', 'particles', 'stars', 'none']),
+      color: z.string().optional(),
+      opacity: z.number().optional(),
+      count: z.number().optional(),
+      speed: z.enum(['slow', 'normal', 'fast']).optional(),
+      size: z.enum(['small', 'medium', 'large']).optional(),
+    }).optional(),
   }),
   blocks: z.array(BlockSchema),
   reasoning: z.string().optional(),
@@ -221,34 +236,99 @@ Return JSON with:
     input: PageGenerationInput,
     analysis: { tone: string }
   ): Promise<PageTheme> {
-    const occasionColorMap: Record<string, { primary: string; secondary: string }> = {
-      birthday: { primary: '#ec4899', secondary: '#f97316' },
-      anniversary: { primary: '#f43f5e', secondary: '#a855f7' },
-      wedding: { primary: '#d4af37', secondary: '#f8fafc' },
-      valentine: { primary: '#e11d48', secondary: '#ec4899' },
-      christmas: { primary: '#dc2626', secondary: '#16a34a' },
-      romance: { primary: '#f43f5e', secondary: '#ec4899' },
-      celebration: { primary: '#8b5cf6', secondary: '#06b6d4' },
+    // Advanced color schemes with gradients for each occasion
+    const occasionColorMap: Record<string, {
+      primary: string
+      secondary: string
+      gradient: { from: string; via?: string; to: string; direction: 'to-b' | 'to-r' | 'to-bl' | 'to-br' }
+      animation?: { type: 'floating-hearts' | 'particles' | 'stars'; color: string }
+    }> = {
+      birthday: {
+        primary: '#ec4899',
+        secondary: '#f97316',
+        gradient: { from: '#fdf2f8', via: '#ffffff', to: '#fef3c7', direction: 'to-br' },
+        animation: { type: 'particles', color: '#ec4899' }
+      },
+      anniversary: {
+        primary: '#f43f5e',
+        secondary: '#a855f7',
+        gradient: { from: '#fdf2f8', via: '#ffffff', to: '#faf5ff', direction: 'to-b' },
+        animation: { type: 'floating-hearts', color: '#f43f5e' }
+      },
+      wedding: {
+        primary: '#d4af37',
+        secondary: '#f8fafc',
+        gradient: { from: '#fffbeb', via: '#ffffff', to: '#fef3c7', direction: 'to-b' },
+        animation: { type: 'floating-hearts', color: '#d4af37' }
+      },
+      valentine: {
+        primary: '#e11d48',
+        secondary: '#ec4899',
+        gradient: { from: '#fdf2f8', via: '#ffffff', to: '#fdf2f8', direction: 'to-b' },
+        animation: { type: 'floating-hearts', color: '#e11d48' }
+      },
+      valentines: {
+        primary: '#e11d48',
+        secondary: '#ec4899',
+        gradient: { from: '#fdf2f8', via: '#ffffff', to: '#fdf2f8', direction: 'to-b' },
+        animation: { type: 'floating-hearts', color: '#e11d48' }
+      },
+      christmas: {
+        primary: '#dc2626',
+        secondary: '#16a34a',
+        gradient: { from: '#fef2f2', via: '#ffffff', to: '#f0fdf4', direction: 'to-b' },
+        animation: { type: 'stars', color: '#dc2626' }
+      },
+      romance: {
+        primary: '#f43f5e',
+        secondary: '#ec4899',
+        gradient: { from: '#fdf2f8', via: '#ffffff', to: '#fef3c7', direction: 'to-br' },
+        animation: { type: 'floating-hearts', color: '#f43f5e' }
+      },
+      celebration: {
+        primary: '#8b5cf6',
+        secondary: '#06b6d4',
+        gradient: { from: '#faf5ff', via: '#ffffff', to: '#ecfeff', direction: 'to-b' },
+        animation: { type: 'particles', color: '#8b5cf6' }
+      },
     }
 
-    const colors = occasionColorMap[input.occasion?.toLowerCase() || ''] || {
+    const defaultTheme = {
       primary: '#f43f5e',
       secondary: '#ec4899',
+      gradient: { from: '#fdf2f8', via: '#ffffff', to: '#fdf2f8', direction: 'to-b' as const },
+      animation: { type: 'floating-hearts' as const, color: '#f43f5e' }
     }
+
+    const occasionKey = input.occasion?.toLowerCase() || ''
+    const themeConfig = occasionColorMap[occasionKey] || defaultTheme
 
     const fontMap: Record<string, string> = {
       elegant: 'serif',
       romantic: 'serif',
       casual: 'sans-serif',
       playful: 'sans-serif',
-      warm: 'sans-serif',
+      warm: 'serif',
     }
 
+    // Enable background animation for romantic occasions
+    const shouldEnableAnimation = ['anniversary', 'wedding', 'valentine', 'valentines', 'romance'].includes(occasionKey)
+
     return {
-      primaryColor: colors.primary,
-      secondaryColor: colors.secondary,
-      fontFamily: fontMap[analysis.tone] || 'sans-serif',
-      backgroundColor: '#ffffff',
+      primaryColor: themeConfig.primary,
+      secondaryColor: themeConfig.secondary,
+      fontFamily: fontMap[analysis.tone] || 'serif',
+      backgroundColor: themeConfig.gradient.from,
+      backgroundGradient: themeConfig.gradient,
+      backgroundAnimation: shouldEnableAnimation && themeConfig.animation ? {
+        enabled: true,
+        type: themeConfig.animation.type,
+        color: themeConfig.animation.color,
+        opacity: 0.4,
+        count: 12,
+        speed: 'normal' as const,
+        size: 'medium' as const,
+      } : undefined
     }
   }
 
@@ -366,14 +446,14 @@ Example correct structure:
 7. **Visual Thinking:** Consider how photos/videos/music will enhance the page when planned
 
 # Block-Specific Guidelines:
-- **hero:** Create an impactful title and emotional subtitle that captures the essence
-- **intro:** Set the tone with 3-5 sentences using specific details from the story
-- **text:** Write detailed paragraphs (4-6 sentences) using specific moments and memories
-- **quote:** Extract or create meaningful quotes that resonate with their story
-- **timeline:** Create 3-5 timeline items with specific dates, titles, and descriptions from the story
-- **memories:** Generate 2-4 memory entries with specific titles, dates, and detailed descriptions
-- **gallery:** If photos planned, include with descriptive title and placeholder text
-- **final-message:** A powerful, heartfelt closing (4-6 sentences) that captures the depth of feeling
+- **hero:** Create an impactful title and emotional subtitle that captures the essence. Use large, elegant typography with gradient text effects. If media is available, showcase it prominently.
+- **intro:** Set the tone with 3-5 sentences using specific details from the story. Use glass-card styling with soft glow.
+- **text:** Write detailed paragraphs (4-6 sentences) using specific moments and memories. Format in elegant cards with proper spacing.
+- **quote:** Extract or create meaningful quotes that resonate with their story. Display with elegant typography and decorative elements.
+- **timeline:** Create 3-6 timeline items with specific dates, titles, and detailed bilingual descriptions if requested. Use alternating left/right layout with connecting lines.
+- **memories:** Generate 2-4 memory entries with specific titles, dates, and detailed descriptions. Format as cards in a grid.
+- **gallery:** If photos planned, include with descriptive title. Use responsive grid layout (1-3 columns). Show placeholders if media will be uploaded.
+- **final-message:** A powerful, heartfelt closing (4-6 sentences) with large typography, possibly with decorative heart icon. Use full-width hero-style section.
 
 # Quality Standards:
 - Make it feel hand-crafted and personalized, not AI-generated
@@ -391,12 +471,25 @@ Return ONLY valid JSON matching the schema. ALL block fields MUST be nested insi
     let userPrompt = `## User's Detailed Story:\n`
     userPrompt += `"${prompt}"\n\n`
 
+    // Detect if user wants bilingual content
+    const wantsBilingual = /[\u0600-\u06FF]/.test(prompt) || prompt.toLowerCase().includes('arabic') || prompt.toLowerCase().includes('bilingual')
+
     if (occasion) {
       userPrompt += `**Occasion:** ${occasion}\n`
+      // Suggest background animation for romantic occasions
+      if (['anniversary', 'wedding', 'valentine', 'valentines', 'romance'].includes(occasion.toLowerCase())) {
+        userPrompt += `**Visual Style:** This is a romantic occasion - use floating heart animations, soft pink gradients, glass-card effects, and elegant serif typography.\n`
+      }
     }
 
     if (recipientName) {
       userPrompt += `**Recipient's Name:** ${recipientName}\n`
+    }
+
+    if (wantsBilingual) {
+      userPrompt += `**Language:** User wants bilingual content (English + Arabic). Include both languages naturally throughout.\n`
+    } else {
+      userPrompt += `**Language:** Use only English unless the story explicitly contains Arabic text.\n`
     }
 
     // Media preferences
@@ -441,12 +534,24 @@ Return ONLY valid JSON matching the schema. ALL block fields MUST be nested insi
       userPrompt += `**CRITICAL:** User is on FREE tier - use ONLY free blocks. No video, countdown, testimonials, or map blocks.\n\n`
     }
 
+    userPrompt += `### Advanced Visual Design:\n`
+    userPrompt += `1. **Background Gradients:** Use beautiful multi-stop gradients (from-rose-50 via-white to-pink-50 style)\n`
+    userPrompt += `2. **Glass Effects:** Apply glass-card styling to content blocks (semi-transparent white with backdrop blur)\n`
+    userPrompt += `3. **Soft Glows:** Add subtle glow effects to hero sections, cards, and important buttons\n`
+    userPrompt += `4. **Animations:** Use floating hearts for romantic occasions, particles for birthdays, stars for special moments\n`
+    userPrompt += `5. **Typography:** Large, elegant serif fonts for titles (Playfair Display style), readable sans-serif for body\n`
+    userPrompt += `6. **Spacing:** Generous padding and margins for breathing room\n`
+    userPrompt += `7. **Visual Hierarchy:** Use size, color, and spacing to guide the eye\n`
+    userPrompt += `8. **Color Harmony:** Create sophisticated color palettes that work together beautifully\n\n`
+
     userPrompt += `### Quality Standards:\n`
     userPrompt += `- Prioritize emotional depth and personalization over generic content\n`
     userPrompt += `- Make every word count - each block should add meaningful value\n`
     userPrompt += `- Create a page that feels like a personalized love letter or memory book\n`
     userPrompt += `- The page should tell a complete, moving story from start to finish\n`
-    userPrompt += `- Honor the user's story by creating something beautiful, specific, and deeply meaningful\n\n`
+    userPrompt += `- Honor the user's story by creating something beautiful, specific, and deeply meaningful\n`
+    userPrompt += `- The final result should look professionally designed, not template-like\n`
+    userPrompt += `- Every visual element should enhance the emotional impact\n\n`
 
     userPrompt += `Generate the complete page now with all blocks filled with rich, personalized, heartfelt content based on their story.`
 

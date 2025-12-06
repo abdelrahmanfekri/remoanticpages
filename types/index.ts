@@ -14,6 +14,21 @@ export interface PageTheme {
   secondaryColor: string
   fontFamily: string
   backgroundColor?: string
+  backgroundGradient?: {
+    from: string
+    via?: string
+    to: string
+    direction?: 'to-b' | 'to-r' | 'to-bl' | 'to-br'
+  }
+  backgroundAnimation?: {
+    enabled: boolean
+    type: 'floating-hearts' | 'particles' | 'stars' | 'none'
+    color?: string
+    opacity?: number
+    count?: number
+    speed?: 'slow' | 'normal' | 'fast'
+    size?: 'small' | 'medium' | 'large'
+  }
 }
 
 export interface PageSettings {
