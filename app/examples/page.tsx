@@ -53,7 +53,7 @@ export default function ExamplesPage() {
             See what you can create with our AI-powered page builder. Each page is unique and personalized.
           </p>
           <Link
-            href="/create/prompt"
+            href="/login?redirect=/create/prompt"
             className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-pink-500 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:scale-105 transition-transform shadow-xl"
           >
             <Sparkles size={20} />

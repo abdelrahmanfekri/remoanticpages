@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Heart, Menu, X, Home, LayoutDashboard, Sparkles, DollarSign, LogOut, Crown, User } from 'lucide-react'
+import { Heart, Menu, X, LayoutDashboard, Sparkles, DollarSign, LogOut, Crown, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -30,8 +30,7 @@ export function Navbar({ user, userTier = 'free' }: NavbarProps) {
   const isActive = (path: string) => pathname === path
 
   const navLinks = [
-    { href: '/', label: 'Home', icon: Home, show: true },
-    { href: '/create/prompt', label: 'Create', icon: Sparkles, show: true },
+    { href: '/create/prompt', label: 'Create', icon: Sparkles, show: !!user },
     { href: '/pricing', label: 'Pricing', icon: DollarSign, show: true },
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, show: !!user },
   ]
@@ -57,7 +56,7 @@ export function Navbar({ user, userTier = 'free' }: NavbarProps) {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden align-middle md:flex items-center gap-1">
             {navLinks
               .filter(link => link.show)
               .map((link) => {

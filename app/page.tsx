@@ -237,7 +237,7 @@ export default async function HomePage() {
               "Made an anniversary page in 5 minutes. My partner cried happy tears!"
             </blockquote>
             
-            <p className="text-gray-600 font-semibold">Sarah M.</p>
+            <p className="text-gray-600 font-semibold">Mary M.</p>
             <p className="text-sm text-gray-500">United States</p>
           </div>
         </div>

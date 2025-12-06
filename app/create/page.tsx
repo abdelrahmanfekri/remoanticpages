@@ -1,29 +1,44 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Sparkles, FileText, ArrowRight, Crown, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { getCurrentSubscription } from '@/lib/actions/subscriptions'
 import type { Tier } from '@/lib/tiers'
 
 export default function CreatePage() {
+  const router = useRouter()
+  const supabase = createClient()
+  const [user, setUser] = useState<any>(null)
   const [userTier, setUserTier] = useState<Tier>('free')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchTier = async () => {
+    const checkAuth = async () => {
       try {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        
+        if (!authUser) {
+          router.push('/login?redirect=/create')
+          return
+        }
+
+        setUser(authUser)
+
         const subscriptionData = await getCurrentSubscription()
         setUserTier(subscriptionData.tier || 'free')
       } catch (error) {
-        console.error('Failed to fetch tier:', error)
+        console.error('Failed to fetch data:', error)
+        router.push('/login?redirect=/create')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTier()
-  }, [])
+    checkAuth()
+  }, [router, supabase])
 
   if (loading) {
     return (
@@ -34,6 +49,10 @@ export default function CreatePage() {
         </div>
       </div>
     )
+  }
+
+  if (!user) {
+    return null
   }
 
   const creationMethods = [
@@ -159,4 +178,3 @@ export default function CreatePage() {
     </div>
   )
 }
-

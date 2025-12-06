@@ -27,24 +27,35 @@ export async function GET(request: Request) {
   try {
     const supabase = await createClient()
     
-    // For OAuth flows, Supabase SSR's getUser() automatically exchanges the code
-    // if the code verifier is in cookies. This is the recommended approach.
-    // getUser() will handle the code exchange internally if needed.
+    // Handle OAuth code exchange
+    if (code) {
+      const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+      
+      if (exchangeError) {
+        console.error('OAuth code exchange error:', exchangeError)
+        const url = new URL(`${origin}/login`)
+        url.searchParams.set('error', 'oauth_failed')
+        url.searchParams.set('message', 'OAuth authentication failed. Please try signing in again.')
+        return NextResponse.redirect(url)
+      }
+
+      if (data.session && data.user) {
+        // Successfully authenticated via OAuth
+        const redirectUrl = redirect.startsWith('/') ? `${origin}${redirect}` : redirect
+        return NextResponse.redirect(redirectUrl)
+      }
+    }
     
-    // Use getUser() - it automatically handles OAuth code exchange
+    // Check if user is already authenticated (for cases where code was already exchanged)
     const { data: { user } } = await supabase.auth.getUser()
     
     if (user) {
-      // User authenticated! Supabase handled OAuth code exchange automatically
-      // Free tier is the default, no subscription record needed
-      
       const redirectUrl = redirect.startsWith('/') ? `${origin}${redirect}` : redirect
       return NextResponse.redirect(redirectUrl)
     }
     
-    // If no user, try email confirmation token
+    // Handle email confirmation token
     if (token && type) {
-      // Only handle email verification types
       if (type === 'email' || type === 'signup' || type === 'email_change') {
         const { data: { user: verifiedUser }, error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: token,
@@ -59,38 +70,22 @@ export async function GET(request: Request) {
         }
         
         if (verifiedUser) {
-          // Free tier is the default, no subscription record needed
-          
           const redirectUrl = redirect.startsWith('/') ? `${origin}${redirect}` : redirect
           return NextResponse.redirect(redirectUrl)
         }
       }
     }
     
-    // If we have a code but no user, the code verifier might be missing
-    // This usually means the OAuth flow wasn't initiated properly or cookies were lost
-    if (code) {
-      console.error('OAuth code present but user not authenticated. Code verifier may be missing from cookies.')
-      const url = new URL(`${origin}/login`)
-      url.searchParams.set('error', 'oauth_failed')
-      url.searchParams.set('message', 'OAuth authentication failed. Please try signing in again.')
-      return NextResponse.redirect(url)
-    }
-    
-    // No authentication method found
+    // No valid authentication found
     const url = new URL(`${origin}/login`)
-    url.searchParams.set('error', 'no_auth_code')
+    url.searchParams.set('error', 'auth_failed')
+    url.searchParams.set('message', 'Authentication failed. Please try again.')
     return NextResponse.redirect(url)
   } catch (error) {
     console.error('Callback error:', error)
     const url = new URL(`${origin}/login`)
     url.searchParams.set('error', 'auth_failed')
+    url.searchParams.set('message', 'An unexpected error occurred. Please try again.')
     return NextResponse.redirect(url)
   }
-
-  // URL to redirect to after sign in process completes
-  const redirectUrl = redirect.startsWith('/') ? `${origin}${redirect}` : redirect
-  return NextResponse.redirect(redirectUrl)
 }
-
-

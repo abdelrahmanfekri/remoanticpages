@@ -19,8 +19,10 @@ export default function LoginPage() {
   useEffect(() => {
     // Check for error from auth callback
     const errorParam = searchParams.get('error')
-    if (errorParam === 'auth_failed') {
-      setError('Authentication failed. Please try again.')
+    const messageParam = searchParams.get('message')
+    
+    if (errorParam) {
+      setError(messageParam || 'Authentication failed. Please try again.')
     }
   }, [searchParams])
 
