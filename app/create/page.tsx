@@ -72,7 +72,7 @@ export default function CreatePage() {
       title: 'Start Blank',
       description: 'Build your page from scratch with complete creative freedom',
       icon: <FileText size={32} />,
-      href: '/dashboard/create?template=blank',
+      href: '/dashboard/create',
       color: 'from-blue-500 to-purple-500',
       accentColor: 'blue',
       premium: false,

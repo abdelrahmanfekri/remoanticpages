@@ -8,6 +8,7 @@ import { pageGenerationCache, createCacheKey } from '@/lib/ai/utils/cache'
 import { PageGenerationInputSchema } from '@/lib/ai/schemas'
 import { validateInput } from '@/lib/ai/utils/validators'
 import { createPage } from '@/lib/actions/pages'
+import { checkPageLimit } from '@/lib/tiers'
 import type { GeneratedPage } from '@/lib/ai/core/agent-generator'
 
 export interface GeneratePageResult {
@@ -29,6 +30,11 @@ export async function generatePageWithAI(input: {
   prompt: string
   occasion?: string
   recipientName?: string
+  mediaPreferences?: {
+    music: boolean
+    photos: boolean
+    videos: boolean
+  }
 }): Promise<GeneratePageResult> {
   try {
     const supabase = await createClient()
@@ -41,6 +47,21 @@ export async function generatePageWithAI(input: {
     }
 
     const userTier = await getUserTier(user.id)
+    
+    // Check page limit BEFORE generating to avoid wasting AI quota
+    const { data: existingPages } = await supabase
+      .from('pages')
+      .select('id')
+      .eq('user_id', user.id)
+
+    const pageLimitCheck = checkPageLimit(userTier, existingPages?.length || 0)
+    if (!pageLimitCheck.allowed) {
+      return {
+        error: pageLimitCheck.message || 'Page limit reached. Upgrade to Pro for unlimited pages.',
+        rateLimitExceeded: false,
+      }
+    }
+
     const rateLimiter = createRateLimiter(userTier)
 
     const limitCheck = await rateLimiter.checkLimit('page-generation', user.id)
@@ -73,6 +94,7 @@ export async function generatePageWithAI(input: {
       occasion: input.occasion as any,
       recipientName: input.recipientName,
       userTier,
+      mediaPreferences: input.mediaPreferences,
     })
 
     pageGenerationCache.set(cacheKey, result)

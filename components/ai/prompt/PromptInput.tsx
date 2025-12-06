@@ -18,9 +18,9 @@ export function PromptInput({
   onChange,
   onSubmit,
   isLoading = false,
-  placeholder = "Describe the page you want to create...",
-  minLength = 20,
-  maxLength = 500,
+  placeholder,
+  minLength = 50,
+  maxLength = 1000,
 }: PromptInputProps) {
   const [isFocused, setIsFocused] = useState(false)
   const characterCount = value.length
@@ -56,8 +56,8 @@ export function PromptInput({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className="w-full px-4 py-4 md:px-6 md:py-5 text-base md:text-lg bg-transparent border-none outline-none resize-none min-h-[120px] md:min-h-[160px] placeholder:text-gray-400"
+          placeholder={placeholder || "Share your story in detail: Who is this page for? What makes this moment special? Include memories, feelings, inside jokes, or specific moments you want to celebrate. The more details you share, the more personalized and beautiful your page will be..."}
+          className="w-full px-4 py-4 md:px-6 md:py-5 text-base md:text-lg bg-transparent border-none outline-none resize-none min-h-[180px] md:min-h-[240px] placeholder:text-gray-400 leading-relaxed"
           maxLength={maxLength}
           disabled={isLoading}
         />
@@ -88,8 +88,12 @@ export function PromptInput({
         </div>
         <p className="text-xs md:text-sm text-gray-500 text-center">
           {characterCount < minLength
-            ? `${minLength - characterCount} more characters needed`
-            : '✓ Ready to generate'}
+            ? `${minLength - characterCount} more characters needed (share more details for a better result!)`
+            : characterCount < 100
+            ? '✓ Good start! Add more details for a richer page'
+            : characterCount < 200
+            ? '✓ Great! Add memories or specific moments for best results'
+            : '✓ Perfect! Your page will be personalized and beautiful'}
         </p>
       </div>
 

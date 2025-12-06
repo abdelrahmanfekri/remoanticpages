@@ -1,42 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Check } from 'lucide-react'
 import { OccasionSelector } from './OccasionSelector'
 import { PromptInput } from './PromptInput'
 import { ExamplePrompts } from './ExamplePrompts'
+import { MediaPreferences } from './MediaPreferences'
+import { usePromptStore } from '@/lib/stores/prompt-store'
 
 interface CreationStepsProps {
-  onComplete: (prompt: string, occasion: string | null) => void
+  onComplete: () => void
   onBack?: () => void
 }
 
-type Step = 1 | 2
-
 export function CreationSteps({ onComplete, onBack }: CreationStepsProps) {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState<Step>(1)
-  const [occasion, setOccasion] = useState<string | null>(null)
-  const [prompt, setPrompt] = useState('')
+  const {
+    currentStep,
+    occasion,
+    prompt,
+    mediaPreferences,
+    userTier,
+    setOccasion,
+    setPrompt,
+    setMediaPreferences,
+    previousStep,
+    startGeneration,
+    loadUserTier,
+  } = usePromptStore()
+
+  useEffect(() => {
+    loadUserTier()
+  }, [loadUserTier])
 
   const handleOccasionSelect = (selectedOccasion: string) => {
     setOccasion(selectedOccasion)
-    setTimeout(() => {
-      setCurrentStep(2)
-    }, 300)
   }
 
   const handlePromptSubmit = () => {
-    if (prompt.length >= 20) {
-      onComplete(prompt, occasion)
+    if (prompt.length >= 50) {
+      startGeneration()
+      onComplete()
     }
   }
 
   const handleBack = () => {
     if (currentStep === 2) {
-      setCurrentStep(1)
-      setPrompt('')
+      previousStep()
     } else {
       if (onBack) {
         onBack()
@@ -151,10 +162,19 @@ export function CreationSteps({ onComplete, onBack }: CreationStepsProps) {
                   onSubmit={handlePromptSubmit}
                   placeholder={
                     occasion
-                      ? `Create a beautiful ${occasion} page...`
-                      : 'Describe the page you want to create...'
+                      ? `Share the story behind this ${occasion}: Who is it for? What makes this moment special? Include memories, feelings, inside jokes, or specific moments. The more details you share, the more personalized your page will be...`
+                      : 'Share your story in detail: Who is this page for? What makes this moment special? Include memories, feelings, inside jokes, or specific moments you want to celebrate. The more details you share, the more personalized and beautiful your page will be...'
                   }
                 />
+
+                {/* Media Preferences */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <MediaPreferences
+                    preferences={mediaPreferences}
+                    onChange={setMediaPreferences}
+                    userTier={userTier}
+                  />
+                </div>
               </div>
             </div>
           </div>

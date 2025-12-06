@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CreationSteps } from '@/components/ai/prompt/CreationSteps'
 import { GenerationFlow } from '@/components/ai/generation'
+import { usePromptStore } from '@/lib/stores/prompt-store'
 import { Loader2 } from 'lucide-react'
 
 export default function PromptPage() {
@@ -12,9 +13,8 @@ export default function PromptPage() {
   const supabase = createClient()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [prompt, setPrompt] = useState('')
-  const [occasion, setOccasion] = useState<string | null>(null)
+  
+  const { isGenerating, prompt, occasion, mediaPreferences, stopGeneration, resetForm } = usePromptStore()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -38,16 +38,14 @@ export default function PromptPage() {
     checkAuth()
   }, [router, supabase])
 
-  const handleComplete = (userPrompt: string, userOccasion: string | null) => {
-    setPrompt(userPrompt)
-    setOccasion(userOccasion)
-    setIsGenerating(true)
+  const handleComplete = () => {
+    // Generation is started in the store by CreationSteps
+    // No need to do anything here
   }
 
   const handleCancel = () => {
-    setIsGenerating(false)
-    setPrompt('')
-    setOccasion(null)
+    stopGeneration()
+    resetForm()
   }
 
   if (loading) {
@@ -71,6 +69,7 @@ export default function PromptPage() {
         <GenerationFlow
           prompt={prompt}
           occasion={occasion || undefined}
+          mediaPreferences={mediaPreferences}
           onCancel={handleCancel}
         />
       </>

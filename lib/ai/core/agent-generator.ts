@@ -11,6 +11,11 @@ export interface PageGenerationInput {
   recipientName?: string
   userTier: Tier
   specificBlocks?: BlockType[]
+  mediaPreferences?: {
+    music: boolean
+    photos: boolean
+    videos: boolean
+  }
 }
 
 export interface GeneratedPage {
@@ -317,8 +322,14 @@ Return JSON with:
       )
       .join('\n')
 
-    return `You are an expert AI agent specializing in creating beautiful, personalized pages for special occasions.
-You have deep knowledge of all available block types and how to use them effectively.
+    return `You are an expert AI agent specializing in creating stunning, deeply personalized pages for special occasions. You craft pages that feel hand-made with love and care, like beautiful love letters or memory books.
+
+Your expertise includes:
+- Creating emotionally resonant, personalized content
+- Extracting and honoring every detail from the user's story
+- Designing cohesive narratives that flow beautifully
+- Matching tone, style, and colors to the occasion
+- Crafting content that feels authentic and specific, not generic
 
 # Available Block Types & Their Content:
 ${blockDescriptions}
@@ -338,67 +349,106 @@ Example correct structure:
 {
   "type": "hero",
   "content": {
-    "title": "Happy Birthday!",
-    "subtitle": "Celebrating you today",
+    "title": "Happy Birthday, My Love",
+    "subtitle": "Celebrating the day you came into my world",
     "showImage": true,
     "imageUrl": "https://example.com/image.jpg"
   }
 }
 
-# Your Capabilities:
-1. Create compelling, heartfelt content that resonates emotionally
-2. Use appropriate block types for different content needs
-3. Structure pages with logical flow and visual hierarchy
-4. Match tone and style to the occasion
-5. Fill all content fields with realistic, meaningful data
-6. Create cohesive narratives across multiple blocks
+# Content Creation Principles:
+1. **Extract Everything:** Pull out every specific detail, name, place, date, memory, feeling, and moment from the user's story
+2. **Be Specific:** Use actual names, places, dates, and moments mentioned - never use generic placeholders
+3. **Stay Authentic:** Write like you're the person who experienced these moments - warm, personal, real
+4. **Avoid Clichés:** Skip generic phrases like "special person" or "amazing journey" - use their actual story
+5. **Bilingual Support:** If the story includes Arabic text or mentions bilingual content, naturally include both languages
+6. **Emotional Depth:** Every block should add emotional value and move the story forward
+7. **Visual Thinking:** Consider how photos/videos/music will enhance the page when planned
 
-# Content Guidelines:
-- Make text warm, personal, and authentic
-- Use the recipient's name naturally throughout
-- Keep paragraphs concise (2-4 sentences for text fields)
-- Avoid generic phrases like "special person" or "amazing journey"
-- Create specific, vivid descriptions
-- Match formality to the occasion
-- Ensure emotional authenticity
+# Block-Specific Guidelines:
+- **hero:** Create an impactful title and emotional subtitle that captures the essence
+- **intro:** Set the tone with 3-5 sentences using specific details from the story
+- **text:** Write detailed paragraphs (4-6 sentences) using specific moments and memories
+- **quote:** Extract or create meaningful quotes that resonate with their story
+- **timeline:** Create 3-5 timeline items with specific dates, titles, and descriptions from the story
+- **memories:** Generate 2-4 memory entries with specific titles, dates, and detailed descriptions
+- **gallery:** If photos planned, include with descriptive title and placeholder text
+- **final-message:** A powerful, heartfelt closing (4-6 sentences) that captures the depth of feeling
 
-# Block Content Examples:
-- hero: title should be impactful, subtitle adds context
-- intro: 2-4 sentence introduction setting the tone
-- text: focused paragraphs on specific themes
-- quote: meaningful quotes that resonate with occasion
-- gallery: requires title if showTitle is true
-- timeline: needs title and will use separate timeline data
-- memories: needs title, displays memory cards
-- final-message: heartfelt closing with signature
+# Quality Standards:
+- Make it feel hand-crafted and personalized, not AI-generated
+- Every word should serve the story and the relationship
+- Create pages that could bring tears to the eyes - that's how meaningful they should be
+- If the user shared details, use them - honor their story completely
+- Balance emotional depth with readability and flow
 
 Return ONLY valid JSON matching the schema. ALL block fields MUST be nested inside the "content" object.`
   }
 
   private buildUserPrompt(input: PageGenerationInput, blockStructure: string[]): string {
-    const { prompt, occasion, recipientName, userTier } = input
+    const { prompt, occasion, recipientName, userTier, mediaPreferences } = input
 
-    let userPrompt = `Create a personalized page with the following details:\n\n`
-    userPrompt += `User's request: "${prompt}"\n\n`
+    let userPrompt = `## User's Detailed Story:\n`
+    userPrompt += `"${prompt}"\n\n`
 
     if (occasion) {
-      userPrompt += `Occasion: ${occasion}\n`
+      userPrompt += `**Occasion:** ${occasion}\n`
     }
 
     if (recipientName) {
-      userPrompt += `Recipient name: ${recipientName}\n`
+      userPrompt += `**Recipient's Name:** ${recipientName}\n`
     }
 
-    userPrompt += `User tier: ${userTier}\n`
-    userPrompt += `\nRequired block structure: ${blockStructure.join(' → ')}\n`
+    // Media preferences
+    if (mediaPreferences) {
+      userPrompt += `\n## Media Plans:\n`
+      if (mediaPreferences.photos) {
+        userPrompt += `- User plans to add PHOTOS - include 'gallery' or 'memories' blocks with placeholders if not already in structure\n`
+      }
+      if (mediaPreferences.videos && userTier !== 'free') {
+        userPrompt += `- User plans to add VIDEOS - consider 'video' blocks if appropriate\n`
+      }
+      if (mediaPreferences.music && userTier !== 'free') {
+        userPrompt += `- User plans to add BACKGROUND MUSIC - page should support music playback\n`
+      }
+    }
+
+    userPrompt += `\n**User tier:** ${userTier}\n`
+    userPrompt += `\n**Required block structure:** ${blockStructure.join(' → ')}\n\n`
+
+    userPrompt += `## Critical Requirements:\n\n`
+    userPrompt += `### Story & Content:\n`
+    userPrompt += `1. Extract ALL specific details, memories, moments, and feelings from the user's story above\n`
+    userPrompt += `2. Create deeply personal, heartfelt content that reflects their unique story\n`
+    userPrompt += `3. Use exact names, places, dates, and moments mentioned in the story\n`
+    userPrompt += `4. Include inside jokes, shared memories, and personal references when mentioned\n`
+    userPrompt += `5. Write in a warm, romantic, and authentic tone - avoid generic or cliché phrases\n`
+    userPrompt += `6. Make each block meaningful and specific to their relationship/story\n`
+    userPrompt += `7. If the story includes Arabic text or mentions bilingual content, include both English and Arabic naturally\n\n`
+
+    userPrompt += `### Block Content:\n`
+    userPrompt += `- **Hero:** Create a compelling title and subtitle that captures the essence of the story\n`
+    userPrompt += `- **Intro:** Set the emotional context using specific details from the story\n`
+    userPrompt += `- **Text blocks:** Tell the story in detail, using specific moments from the prompt\n`
+    userPrompt += `- **Quotes:** Extract meaningful quotes or create impactful statements from the story\n`
+    userPrompt += `- **Timeline:** If journey/story progression mentioned, create timeline items with specific events\n`
+    userPrompt += `- **Memories:** If memories mentioned, create 2-4 memory entries with titles and descriptions\n`
+    userPrompt += `- **Gallery/Memories Grid:** If photos planned, include with descriptive placeholder text\n`
+    userPrompt += `- **Final Message:** A powerful closing that captures the depth of feeling from the story\n\n`
 
     if (userTier === 'free') {
-      userPrompt += `\nNote: User is on free tier - only use free blocks\n`
+      userPrompt += `### Tier Limitation:\n`
+      userPrompt += `**CRITICAL:** User is on FREE tier - use ONLY free blocks. No video, countdown, testimonials, or map blocks.\n\n`
     }
 
-    userPrompt += `\nGenerate a complete page with all blocks filled with meaningful, personalized content.`
-    userPrompt += `\nEnsure each block's content fields are properly populated based on the block's contentSchema.`
-    userPrompt += `\nBe creative, personal, and emotionally authentic!`
+    userPrompt += `### Quality Standards:\n`
+    userPrompt += `- Prioritize emotional depth and personalization over generic content\n`
+    userPrompt += `- Make every word count - each block should add meaningful value\n`
+    userPrompt += `- Create a page that feels like a personalized love letter or memory book\n`
+    userPrompt += `- The page should tell a complete, moving story from start to finish\n`
+    userPrompt += `- Honor the user's story by creating something beautiful, specific, and deeply meaningful\n\n`
+
+    userPrompt += `Generate the complete page now with all blocks filled with rich, personalized, heartfelt content based on their story.`
 
     return userPrompt
   }

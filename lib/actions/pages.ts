@@ -103,10 +103,10 @@ export async function createPage(data: CreatePageData): Promise<CreatePageResult
 
     // Use provided theme or default theme
     const pageTheme = theme || {
-      primaryColor: '#f43f5e',
-      secondaryColor: '#ec4899',
-      fontFamily: 'serif',
-      backgroundColor: '#ffffff',
+        primaryColor: '#f43f5e',
+        secondaryColor: '#ec4899',
+        fontFamily: 'serif',
+        backgroundColor: '#ffffff',
     }
 
     // Prepare settings

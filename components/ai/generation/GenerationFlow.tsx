@@ -12,6 +12,11 @@ interface GenerationFlowProps {
   prompt: string
   occasion?: string
   recipientName?: string
+  mediaPreferences?: {
+    music: boolean
+    photos: boolean
+    videos: boolean
+  }
   onComplete?: (pageId: string, slug: string) => void
   onCancel?: () => void
 }
@@ -22,6 +27,7 @@ export function GenerationFlow({
   prompt,
   occasion,
   recipientName,
+  mediaPreferences,
   onComplete,
   onCancel,
 }: GenerationFlowProps) {
@@ -75,6 +81,7 @@ export function GenerationFlow({
         prompt,
         occasion,
         recipientName,
+        mediaPreferences,
       })
 
       if (result.error) {
