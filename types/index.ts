@@ -12,7 +12,7 @@ export type AISuggestion = Database['public']['Tables']['ai_suggestions']['Row']
 export interface PageTheme {
   primaryColor: string
   secondaryColor: string
-  fontFamily: string
+  fontFamily: 'serif' | 'sans-serif' | 'monospace'
   backgroundColor?: string
   backgroundGradient?: {
     from: string

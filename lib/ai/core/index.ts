@@ -1,12 +1,12 @@
 export { AIClient, createAIClient, getModelForTier } from './client'
 export type { AIClientConfig } from './client'
 
-export { PageGenerator, createPageGenerator } from './generator'
-export type { PageGenerationInput, GeneratedPage } from './generator'
+export { BaseAgent } from './base-agent'
+export type { AgentConfig, ProgressCallback } from './base-agent'
 
-export { ContentEnhancer, createContentEnhancer } from './enhancer'
-export type { EnhancementInput, EnhancementSuggestions } from './enhancer'
+export { PageGeneratorAgent, createPageGeneratorAgent } from './page-generator'
+export type { PageGenerationInput } from './page-generator'
 
-export { ContentAnalyzer, createContentAnalyzer } from './analyzer'
-export type { AnalysisResult, PageAnalysis } from './analyzer'
+export { BlockEnhancementAgent, createBlockEnhancementAgent } from './block-enhancer'
+export type { BlockEnhancementInput, EnhancementResult } from './block-enhancer'
 

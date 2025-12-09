@@ -1,4 +1,5 @@
 import { BlockType, BlockContent, BlockSettings } from '@/types'
+import { Tier } from '../tiers'
 
 export interface BlockDefinition {
   type: BlockType
@@ -459,7 +460,7 @@ export const BLOCK_DEFINITIONS: Record<BlockType, BlockDefinition> = {
     description: 'Count down to a special date',
     icon: '⏰',
     category: 'interactive',
-    isPremium: true,
+    isPremium: false,
     defaultContent: {
       title: 'Counting Down',
       targetDate: '',
@@ -910,5 +911,16 @@ export function getFreeBlocks(): BlockDefinition[] {
 
 export function getPremiumBlocks(): BlockDefinition[] {
   return Object.values(BLOCK_DEFINITIONS).filter((block) => block.isPremium)
+}
+
+export function getTierBlock(tier: Tier): BlockDefinition[]{
+  if (tier == 'free') {
+    return getFreeBlocks()
+  } else if (tier == 'pro') {
+    return getPremiumBlocks()
+  } else if (tier == 'lifetime') {
+    return getAllBlocks()
+  }
+  return []
 }
 

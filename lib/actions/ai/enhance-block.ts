@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getUserTier } from '@/lib/subscription'
-import { createContentEnhancer } from '@/lib/ai/core'
+import { createBlockEnhancementAgent, createAIClient, getModelForTier } from '@/lib/ai/core'
 import { createRateLimiter } from '@/lib/ai/utils/rate-limiter'
 import { blockEnhancementCache, createCacheKey, hashPrompt } from '@/lib/ai/utils/cache'
 import { BlockEnhancementInputSchema } from '@/lib/ai/schemas'
@@ -64,8 +64,18 @@ export async function enhanceBlockContent(input: {
       return { suggestions: cached }
     }
 
-    const enhancer = createContentEnhancer(userTier)
-    const suggestions = await enhancer.enhanceText(input)
+    const enhancer = createBlockEnhancementAgent(userTier)
+    const result = await enhancer.enhanceBlock({
+      blockType: input.blockType as any,
+      currentContent: { [input.field]: input.currentContent },
+      context: input.context ? {
+        pageTitle: input.context.pageTitle,
+        recipientName: input.context.recipientName,
+        occasion: input.context.occasion,
+        overallTone: input.context.tone,
+      } : undefined,
+    })
+    const suggestions = result.suggestions.map(s => s.enhanced)
 
     blockEnhancementCache.set(cacheKey, suggestions)
 
@@ -90,9 +100,13 @@ export async function improveClarity(content: string): Promise<EnhanceBlockResul
     }
 
     const userTier = await getUserTier(user.id)
-    const enhancer = createContentEnhancer(userTier)
-    
-    const improved = await enhancer.improveClarity(content)
+    const client = createAIClient({ model: getModelForTier(userTier), temperature: 0.3 })
+
+    const systemPrompt = `You are an expert editor. Improve the clarity and flow of the given text while maintaining its meaning and tone. Keep it concise.`
+
+    const userPrompt = `Improve this text:\n\n"${content}"\n\nReturn ONLY the improved version, no explanations.`
+
+    const improved = await client.generateText(userPrompt, systemPrompt)
 
     return { suggestions: [improved] }
   } catch (error) {
@@ -116,9 +130,19 @@ export async function expandContent(
     }
 
     const userTier = await getUserTier(user.id)
-    const enhancer = createContentEnhancer(userTier)
-    
-    const expanded = await enhancer.expandText(content, targetLength)
+    const client = createAIClient({ model: getModelForTier(userTier), temperature: 0.7 })
+
+    const lengthGuide = {
+      short: '2-3 sentences',
+      medium: '4-5 sentences',
+      long: '1-2 paragraphs'
+    }
+
+    const systemPrompt = `You are an expert writer. Expand the given text to be more detailed and engaging while maintaining its tone and message.`
+
+    const userPrompt = `Expand this text to ${lengthGuide[targetLength]}:\n\n"${content}"\n\nReturn ONLY the expanded version, no explanations.`
+
+    const expanded = await client.generateText(userPrompt, systemPrompt)
 
     return { suggestions: [expanded] }
   } catch (error) {
@@ -139,9 +163,13 @@ export async function makeMorePersonal(content: string, recipientName: string): 
     }
 
     const userTier = await getUserTier(user.id)
-    const enhancer = createContentEnhancer(userTier)
-    
-    const personalized = await enhancer.makeMorePersonal(content, recipientName)
+    const client = createAIClient({ model: getModelForTier(userTier), temperature: 0.8 })
+
+    const systemPrompt = `You are an expert at writing personal, heartfelt messages.`
+
+    const userPrompt = `Make this text more personal and heartfelt for someone named ${recipientName}:\n\n"${content}"\n\nReturn ONLY the improved version, no explanations.`
+
+    const personalized = await client.generateText(userPrompt, systemPrompt)
 
     return { suggestions: [personalized] }
   } catch (error) {
@@ -165,9 +193,20 @@ export async function adjustTone(
     }
 
     const userTier = await getUserTier(user.id)
-    const enhancer = createContentEnhancer(userTier)
-    
-    const adjusted = await enhancer.adjustTone(content, targetTone)
+    const client = createAIClient({ model: getModelForTier(userTier), temperature: 0.7 })
+
+    const toneDescriptions = {
+      formal: 'formal and elegant',
+      casual: 'casual and friendly',
+      romantic: 'romantic and passionate',
+      playful: 'playful and fun'
+    }
+
+    const systemPrompt = `You are an expert writer skilled at adjusting tone.`
+
+    const userPrompt = `Rewrite this text in a ${toneDescriptions[targetTone]} tone:\n\n"${content}"\n\nReturn ONLY the rewritten version, no explanations.`
+
+    const adjusted = await client.generateText(userPrompt, systemPrompt)
 
     return { suggestions: [adjusted] }
   } catch (error) {

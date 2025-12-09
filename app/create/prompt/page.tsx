@@ -38,10 +38,6 @@ export default function PromptPage() {
     checkAuth()
   }, [router, supabase])
 
-  const handleComplete = () => {
-    // Generation is started in the store by CreationSteps
-    // No need to do anything here
-  }
 
   const handleCancel = () => {
     stopGeneration()
@@ -71,6 +67,9 @@ export default function PromptPage() {
           occasion={occasion || undefined}
           mediaPreferences={mediaPreferences}
           onCancel={handleCancel}
+          onComplete={() => {
+            resetForm()
+          }}
         />
       </>
     )

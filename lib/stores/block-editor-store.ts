@@ -89,6 +89,7 @@ interface BlockEditorActions {
   duplicateBlock: (blockId: string) => void
   moveBlock: (blockId: string, direction: 'up' | 'down') => void
   reorderBlocks: (blockIds: string[]) => void
+  setBlocks: (blocks: BlockData[]) => void
   selectBlock: (blockId: string | null) => void
   
   // Memory Actions
@@ -316,6 +317,18 @@ export const useBlockEditorStore = create<BlockEditorState & BlockEditorActions>
       .map((block, index) => ({ ...block, order: index }))
     
     set({ blocks: newBlocks, hasUnsavedChanges: true })
+    get().saveToHistory()
+  },
+
+  setBlocks: (newBlocks) => {
+    const normalizedBlocks = newBlocks.map((block, index) => ({
+      ...block,
+      id: block.id || `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      order: block.order !== undefined ? block.order : index,
+      content: block.content || {},
+      settings: block.settings || {},
+    }))
+    set({ blocks: normalizedBlocks, hasUnsavedChanges: true })
     get().saveToHistory()
   },
 

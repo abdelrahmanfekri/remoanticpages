@@ -7,7 +7,12 @@ export const PageThemeSchema = z.object({
   backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').optional(),
 })
 
-export const BlockContentSchema = z.record(z.any())
+export const BlockContentSchema = z.record(z.any()).refine(
+  (val) => typeof val === 'object' && val !== null && !Array.isArray(val),
+  {
+    message: 'Content must be an object, not a string or array',
+  }
+)
 
 export const BlockSettingsSchema = z.record(z.any())
 

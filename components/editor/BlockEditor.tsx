@@ -14,6 +14,7 @@ import { BlockLibraryPanel } from './BlockLibraryPanel'
 import { BlockSettingsPanel } from './BlockSettingsPanel'
 import { ThemePanel } from './ThemePanel'
 import { MediaPanel, MusicPanel } from './MediaPanels'
+import { AIEnhancementPanel } from './AIEnhancementPanel'
 import { PrivacyModal } from '@/components/PrivacyModal'
 import { UpgradeModal } from '@/components/UpgradeModal'
 
@@ -75,6 +76,8 @@ export function BlockEditor({
     deleteBlock,
     duplicateBlock,
     moveBlock,
+    reorderBlocks,
+    setBlocks,
     selectBlock,
     setViewMode,
     setDeviceView,
@@ -213,6 +216,7 @@ export function BlockEditor({
             >
               <div className="bg-white rounded-lg overflow-hidden shadow-lg">
                 <BlockRenderer
+                  key={`page-${blocks.length}-${blocks.map(b => `${b.id}-${JSON.stringify(b.content)}`).join('-')}`}
                   page={mockPage as any}
                   editable={viewMode === 'edit'}
                   onBlockClick={(blockId) => {
@@ -258,8 +262,7 @@ export function BlockEditor({
                 context={{
                   pageTitle: title,
                   recipientName: recipientName || undefined,
-                  occasion: initialData?.settings?.occasion as any,
-                  tone: (theme.mood as any) || 'romantic',
+                  tone: 'romantic',
                 }}
               />
             )}
@@ -314,6 +317,37 @@ export function BlockEditor({
           onClose={closeUpgradeModal}
         />
       )}
+
+      {/* AI Enhancement Panel */}
+      <AIEnhancementPanel
+        pageTitle={title}
+        recipientName={recipientName || ''}
+        theme={theme}
+        blocks={blocks}
+        onApplyChanges={(updates) => {
+          if (updates.title) {
+            setTitle(updates.title)
+          }
+          if (updates.recipientName) {
+            setRecipientName(updates.recipientName)
+          }
+          if (updates.theme) {
+            setTheme({ ...theme, ...updates.theme })
+          }
+          if (updates.blocks && updates.blocks.length > 0) {
+            const sortedBlocks = [...updates.blocks]
+              .sort((a, b) => (a.order || 0) - (b.order || 0))
+              .map((block, index) => ({
+                ...block,
+                id: block.id || `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                order: block.order !== undefined ? block.order : index,
+                content: block.content || {},
+                settings: block.settings || {},
+              }))
+            setBlocks(sortedBlocks)
+          }
+        }}
+      />
     </div>
   )
 }

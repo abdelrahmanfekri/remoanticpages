@@ -1,6 +1,11 @@
 'use client'
 
-import { GenerationStep } from '@/lib/ai/core/agent-generator'
+interface GenerationStep {
+  step: string
+  status: 'pending' | 'in_progress' | 'completed' | 'error'
+  message: string
+  progress: number
+}
 import { AILoadingState } from '@/components/ai/core/AILoadingState'
 
 interface GenerationProgressProps {

@@ -2,11 +2,15 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { GeneratedPage, GenerationStep } from '@/lib/ai/core/agent-generator'
 import { GenerationProgress } from './GenerationProgress'
-import { GenerationPreview } from './GenerationPreview'
-import { GenerationActions } from './GenerationActions'
 import { generatePageWithAI, acceptGeneratedPage } from '@/lib/actions/ai/generate-page'
+
+interface GenerationStep {
+  step: string
+  status: 'pending' | 'in_progress' | 'completed' | 'error'
+  message: string
+  progress: number
+}
 
 interface GenerationFlowProps {
   prompt: string
@@ -21,7 +25,7 @@ interface GenerationFlowProps {
   onCancel?: () => void
 }
 
-type FlowState = 'idle' | 'generating' | 'preview' | 'accepting' | 'error'
+type FlowState = 'generating' | 'accepting' | 'error'
 
 export function GenerationFlow({
   prompt,
@@ -34,7 +38,6 @@ export function GenerationFlow({
   const router = useRouter()
   const [state, setState] = useState<FlowState>('generating')
   const [steps, setSteps] = useState<GenerationStep[]>([])
-  const [generatedPage, setGeneratedPage] = useState<GeneratedPage | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const generate = useCallback(async () => {
@@ -57,7 +60,7 @@ export function GenerationFlow({
         { index: 1, delay: 1200, message: 'Creating color theme and design...' },
         { index: 2, delay: 1000, message: 'Selecting the perfect blocks...' },
         { index: 3, delay: 2000, message: 'Writing personalized content...' },
-        { index: 4, delay: 800, message: 'Adding final touches...' },
+        { index: 4, delay: 800, message: 'Finalizing and saving your page...' },
       ]
 
       for (const { index, delay, message } of stepTiming) {
@@ -81,7 +84,11 @@ export function GenerationFlow({
         prompt,
         occasion,
         recipientName,
-        mediaPreferences,
+        uploadedMedia: mediaPreferences ? {
+          photos: mediaPreferences.photos ? [] : undefined,
+          videos: mediaPreferences.videos ? [] : undefined,
+          music: mediaPreferences.music ? { url: '' } : undefined,
+        } : undefined,
       })
 
       if (result.error) {
@@ -91,12 +98,33 @@ export function GenerationFlow({
       }
 
       if (result.page) {
-        setGeneratedPage(result.page)
-        setState('preview')
-        
         setSteps((prev) =>
           prev.map((s) => ({ ...s, status: 'completed' as const, progress: 100 }))
         )
+
+        setState('accepting')
+
+        try {
+          const acceptResult = await acceptGeneratedPage(result.page)
+
+          if (acceptResult.error) {
+            setError(acceptResult.error)
+            setState('error')
+            return
+          }
+
+          if (acceptResult.pageId) {
+            if (onComplete) {
+              onComplete(acceptResult.pageId, acceptResult.slug || '')
+            } else {
+              router.push(`/dashboard/edit/${acceptResult.pageId}`)
+            }
+          }
+        } catch (acceptErr) {
+          console.error('Accept error:', acceptErr)
+          setError('Failed to save page. Please try again.')
+          setState('error')
+        }
       }
     } catch (err) {
       console.error('Generation error:', err)
@@ -105,60 +133,8 @@ export function GenerationFlow({
     }
   }, [prompt, occasion, recipientName])
 
-  const handleAccept = async () => {
-    if (!generatedPage) return
-
-    setState('accepting')
-
-    try {
-      const result = await acceptGeneratedPage(generatedPage)
-
-      if (result.error) {
-        setError(result.error)
-        setState('error')
-        return
-      }
-
-      if (result.pageId && result.slug) {
-        if (onComplete) {
-          onComplete(result.pageId, result.slug)
-        } else {
-          router.push(`/dashboard/edit/${result.pageId}`)
-        }
-      }
-    } catch (err) {
-      console.error('Accept error:', err)
-      setError('Failed to save page. Please try again.')
-      setState('preview')
-    }
-  }
-
   const handleRegenerate = () => {
     generate()
-  }
-
-  const handleEdit = async () => {
-    if (!generatedPage) return
-
-    setState('accepting')
-
-    try {
-      const result = await acceptGeneratedPage(generatedPage)
-
-      if (result.error) {
-        setError(result.error)
-        setState('error')
-        return
-      }
-
-      if (result.pageId) {
-        router.push(`/dashboard/edit/${result.pageId}`)
-      }
-    } catch (err) {
-      console.error('Edit error:', err)
-      setError('Failed to create page for editing. Please try again.')
-      setState('preview')
-    }
   }
 
   useEffect(() => {
@@ -237,21 +213,7 @@ export function GenerationFlow({
 
   return (
     <>
-      <GenerationProgress steps={steps} isGenerating={state === 'generating'} />
-
-      {state === 'preview' && generatedPage && (
-        <>
-          <GenerationPreview
-            page={generatedPage}
-            onClose={() => onCancel?.()}
-          />
-          <GenerationActions
-            onAccept={handleAccept}
-            onRegenerate={handleRegenerate}
-            onEdit={handleEdit}
-          />
-        </>
-      )}
+      <GenerationProgress steps={steps} isGenerating={state === 'generating' || state === 'accepting'} />
     </>
   )
 }

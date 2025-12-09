@@ -2,14 +2,15 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getUserTier } from '@/lib/subscription'
-import { createAIPageGeneratorAgent } from '@/lib/ai/core/agent-generator'
+import { createPageGeneratorAgent } from '@/lib/ai/core/page-generator'
 import { createRateLimiter } from '@/lib/ai/utils/rate-limiter'
 import { pageGenerationCache, createCacheKey } from '@/lib/ai/utils/cache'
 import { PageGenerationInputSchema } from '@/lib/ai/schemas'
 import { validateInput } from '@/lib/ai/utils/validators'
 import { createPage } from '@/lib/actions/pages'
-import { checkPageLimit } from '@/lib/tiers'
-import type { GeneratedPage } from '@/lib/ai/core/agent-generator'
+import { checkPageLimit, type Tier } from '@/lib/tiers'
+import type { GeneratedPage } from '@/lib/ai/schemas/output'
+import type { PageTheme, BlockData } from '@/types'
 
 export interface GeneratePageResult {
   page?: GeneratedPage
@@ -30,10 +31,10 @@ export async function generatePageWithAI(input: {
   prompt: string
   occasion?: string
   recipientName?: string
-  mediaPreferences?: {
-    music: boolean
-    photos: boolean
-    videos: boolean
+  uploadedMedia?: {
+    photos?: Array<{ url: string; id?: string }>
+    videos?: Array<{ url: string; id?: string }>
+    music?: { url: string }
   }
 }): Promise<GeneratePageResult> {
   try {
@@ -88,13 +89,12 @@ export async function generatePageWithAI(input: {
       return { page: cached }
     }
 
-    const agent = createAIPageGeneratorAgent(userTier)
-    const result = await agent.generatePageWithProgress({
+    const agent = createPageGeneratorAgent(userTier)
+    const result = await agent.generatePage({
       prompt: input.prompt,
-      occasion: input.occasion as any,
+      occasion: input.occasion,
       recipientName: input.recipientName,
-      userTier,
-      mediaPreferences: input.mediaPreferences,
+      uploadedMedia: input.uploadedMedia,
     })
 
     pageGenerationCache.set(cacheKey, result)
@@ -138,7 +138,7 @@ export async function generatePageFromPrompt(input: {
       recipientName: input.recipientName || generatedPage.recipientName || '',
       theme: generatedPage.theme,
       settings: {},
-      blocks: generatedPage.blocks,
+      blocks: generatedPage.blocks as BlockData[],
       memories: [],
       media: [],
     })
@@ -170,7 +170,7 @@ export async function acceptGeneratedPage(generatedPage: GeneratedPage): Promise
       recipientName: generatedPage.recipientName || '',
       theme: generatedPage.theme,
       settings: {},
-      blocks: generatedPage.blocks,
+      blocks: generatedPage.blocks as BlockData[],
       memories: [],
       media: [],
     })
@@ -205,10 +205,10 @@ export async function getRemainingGenerations(): Promise<{ remaining: number; li
     
     const limitCheck = await rateLimiter.checkLimit('page-generation', user.id)
 
-    const limits = {
+    const limits: Record<Tier, number> = {
       free: 1,
-      premium: 10,
       pro: -1,
+      lifetime: -1,
     }
 
     return {
@@ -218,6 +218,66 @@ export async function getRemainingGenerations(): Promise<{ remaining: number; li
   } catch (error) {
     console.error('Get remaining generations error:', error)
     return { remaining: 0, limit: 0, error: 'Failed to check quota' }
+  }
+}
+
+export async function enhancePageWithAI(input: {
+  prompt: string
+  currentPage: {
+    title: string
+    recipientName: string
+    theme: PageTheme
+    blocks: BlockData[]
+  }
+}): Promise<{
+  updates?: {
+    title?: string
+    recipientName?: string
+    theme?: Partial<PageTheme>
+    blocks?: BlockData[]
+  }
+  reasoning?: string
+  error?: string
+  rateLimitExceeded?: boolean
+}> {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { error: 'Unauthorized' }
+    }
+
+    const userTier = await getUserTier(user.id)
+    const rateLimiter = createRateLimiter(userTier)
+
+    const limitCheck = await rateLimiter.checkLimit('block-enhancement', user.id)
+    if (!limitCheck.allowed) {
+      return {
+        error: limitCheck.message || 'Rate limit exceeded',
+        rateLimitExceeded: true,
+      }
+    }
+
+    const agent = createPageGeneratorAgent(userTier)
+    const result = await agent.enhancePage(input.currentPage, input.prompt)
+
+    await rateLimiter.recordUsage('block-enhancement', user.id)
+
+    await supabase.from('ai_suggestions').insert({
+      user_id: user.id,
+      suggestion_type: 'page_enhancement',
+      context: { prompt: input.prompt, currentPage: { title: input.currentPage.title } },
+      suggestion: result,
+      status: 'applied',
+    })
+
+    return result
+  } catch (error) {
+    console.error('Page enhancement error:', error)
+    return { error: error instanceof Error ? error.message : 'Failed to enhance page' }
   }
 }
 
